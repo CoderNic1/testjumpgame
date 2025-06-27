@@ -3552,13 +3552,13 @@ if (savedGameData.pass.currentLevel >= maxLevel) {
 
     }
 
-    function updateVaultSection() {
+
+function updateVaultSection() {
     const tickets = getVaultTicketsEarned();
     document.getElementById('vaultTicketsEarned').textContent =
         `You have ${tickets} unclaimed ticket(s).`;
-    document.getElementById('claimVaultTicketsBtn').disabled = tickets === 0 || !savedGameData.pass.premiumUnlocked;
-}
-
+    document.getElementById('claimVaultTicketsBtn').disabled = tickets === 0 || !savedGameData.pass.premiumUnlocked;}
+    
 function getVaultTicketsEarned() {
     return Math.floor((savedGameData.pass.vaultXP || 0) / 50) - (savedGameData.pass.vaultTicketsClaimed || 0);
 }
