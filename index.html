@@ -2295,9 +2295,6 @@ async function buyPremiumSub() {
         savedGameData.player.premiumSub.active = true;
         savedGameData.player.premiumSub.expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
         savedGameData.player.premiumSub.freeTicketsClaimed = false;
-        // Force regenerate daily tasks to get 4 tasks
-        savedGameData.tasks.daily = generateTasks(true);
-        savedGameData.tasks.dailyReset = getNextDailyResetUTC();
         showRewardNotification("🌟 Premium Subscription activated for 7 days!");
         updateShopScreen();
         saveAllData();
@@ -3073,16 +3070,8 @@ if (rewardMessage) {
         }
 
         function renderTasksMenu() {
-            resetTasksIfNeeded();
-            // Fallback: if tasks are missing or empty, regenerate
-            if (!savedGameData.tasks.daily || savedGameData.tasks.daily.length === 0) {
-                savedGameData.tasks.daily = generateTasks(true);
-                savedGameData.tasks.dailyReset = getNextDailyResetUTC();
-            }
-            if (!savedGameData.tasks.weekly || savedGameData.tasks.weekly.length === 0) {
-                savedGameData.tasks.weekly = generateTasks(false);
-                savedGameData.global.previousLeaderboard = getNextWeeklyResetUTC();
-            }
+            resetTasksIfNeeded(); // In case of new day/week let showingDailyTasks = true;
+
             document.getElementById('tasksPLAI').textContent = savedGameData.player.plai;
             document.getElementById('tasksXP').textContent = savedGameData.pass.currentXP;
             const tasks = showingDailyTasks ? savedGameData.tasks.daily : savedGameData.tasks.weekly;
@@ -3299,12 +3288,6 @@ if (rewardMessage) {
         }
 
         function claimReward(level, type, slotElement) {
-            // Prevent duplicate claims
-            if (savedGameData.pass.claimedRewards[type].includes(level)) return;
-
-            // Immediately disable further clicks
-            slotElement.onclick = null;
-
             const claimEffect = document.createElement('div');
             claimEffect.className = 'claim-effect';
             slotElement.appendChild(claimEffect);
@@ -3345,18 +3328,14 @@ if (rewardMessage) {
             }
             updateHomeScreen();
             updatePassBalances();
-
             setTimeout(() => {
                 slotElement.classList.remove('unlocked');
                 slotElement.classList.add('claimed');
                 slotElement.onclick = null;
                 claimEffect.remove();
                 showRewardNotification(notificationMessage);
-                // Optionally re-render all rewards:
-                // generateRewards();
             }, 1000);
-
-            saveAllData();
+            saveAllData()
         }
 
         function updateBalanceDisplay() {
