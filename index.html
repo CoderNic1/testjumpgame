@@ -1026,14 +1026,13 @@
                         <div class="stat-label">Total Rewards</div>
                     </div>
                 </div>
-                <!-- TODO: uncomment this section to release
-                <div class="vault-section" id="vaultSection" style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
+                <!-- TODO: change the display none to block -->
+                <div class="vault-section" id="vaultSection" style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;"style="display:block;">
                     <h2 style="color:#FFD700;">🎁 Vault Bonus</h2>
                     <p>For every <b>50 XP</b> you collect after reaching the final pass level as premium member, you earn <b>1 extra spin ticket</b>!</p>
                     <p id="vaultTicketsEarned" style="font-size:1.2em; color:#00FFAA;"></p>
                     <button id="claimVaultTicketsBtn" class="menu-btn" style="margin-top:10px;">Claim Tickets</button>
                 </div>
-                -->
                 <button onclick="goHome()" class="back-button">🏠 Back to Home</button>
                 <button onclick="openWheelMenu()" class="menu-btn" style="background: linear-gradient(45deg, #9c27b0, #E040FB);">🎡 Spin Wheel</button>
             </div>
@@ -3551,6 +3550,14 @@ if (savedGameData.pass.currentLevel >= maxLevel) {
     savedGameData.pass.currentXP = 0;
 }
 
+    }
+
+    function updateVaultSection() {
+    const tickets = getVaultTicketsEarned();
+    document.getElementById('vaultTicketsEarned').textContent =
+        `You have ${tickets} unclaimed ticket(s).`;
+    document.getElementById('claimVaultTicketsBtn').disabled = tickets === 0 || !savedGameData.pass.premiumUnlocked;
+}
 
 function getVaultTicketsEarned() {
     return Math.floor((savedGameData.pass.vaultXP || 0) / 50) - (savedGameData.pass.vaultTicketsClaimed || 0);
@@ -3575,18 +3582,6 @@ function claimVaultTickets() {
     }
 }
 
-
-
-function updateVaultSection() {
-    const tickets = getVaultTicketsEarned();
-    document.getElementById('vaultTicketsEarned').textContent =
-        `You have ${tickets} unclaimed ticket(s).`;
-    document.getElementById('claimVaultTicketsBtn').disabled = tickets === 0 || !savedGameData.pass.premiumUnlocked;
-}
-
-
-
-    }
     </script>
 
 
