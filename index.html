@@ -1592,6 +1592,13 @@ let savedGameData = {
     if (saved) {
         Object.assign(savedGameData, JSON.parse(saved));
     }
+    if (!savedGameData.player.premiumSub) {
+    savedGameData.player.premiumSub = {
+        active: false,
+        expires: 0,
+        freeTicketsClaimed: false
+    };
+}
 }
 
 
@@ -2220,19 +2227,15 @@ function updateVaultScreen() {
 	    document.getElementById('giftSpeedButton').disabled = savedGameData.player.upgrades.giftSpeedLevel >= savedGameData.player.upgrades.giftSpeedMaxLevel || (savedGameData.player.plai+1) < giftSpeedCost;
 	    document.getElementById('giftSpeedButton').textContent = savedGameData.player.upgrades.giftSpeedLevel >= (savedGameData.player.upgrades.giftSpeedMaxLevel) ? 'Owned' : 'Buy';
             
-            // Update avatars
-            for (let i = 0; i < 4; i++) {
-                const avatar = document.getElementById(`avatar${i}`);
-                if (avatar) { // Only update if the element exists
-                    avatar.className = 'avatar-option';
-                    if (savedGameData.player.upgrades.ownedAvatars.includes(i)) {
-                        avatar.classList.add('owned');
-                    }
-                    if (savedGameData.player.upgrades.selectedAvatar === i) {
-                        avatar.classList.add('selected');
-                    }
-                }
-            }
+        const subStatus = document.getElementById('premiumSubStatus');
+    if (isPremiumSubActive()) {
+        const daysLeft = Math.ceil((savedGameData.player.premiumSub.expires - Date.now()) / (24*60*60*1000));
+        subStatus.textContent = `Active (${daysLeft}d left)`;
+        document.getElementById('buyPremiumSubBtn').disabled = true;
+    } else {
+        subStatus.textContent = '';
+        document.getElementById('buyPremiumSubBtn').disabled = false;
+    }
         }
         
         function buyUpgrade(type) {
@@ -2283,7 +2286,9 @@ function updateVaultScreen() {
 }
 
 function isPremiumSubActive() {
-    return savedGameData.player.premiumSub.active && savedGameData.player.premiumSub.expires > Date.now();
+
+    const sub = savedGameData.player.premiumSub;
+    return sub && sub.active && sub.expires > Date.now();
 }
 
 async function buyPremiumSub() {
@@ -2301,19 +2306,6 @@ async function buyPremiumSub() {
     }
 }
 
-function updateShopScreen() {
-    // ...existing code...
-    // Premium Sub status
-    const subStatus = document.getElementById('premiumSubStatus');
-    if (isPremiumSubActive()) {
-        const daysLeft = Math.ceil((savedGameData.player.premiumSub.expires - Date.now()) / (24*60*60*1000));
-        subStatus.textContent = `Active (${daysLeft}d left)`;
-        document.getElementById('buyPremiumSubBtn').disabled = true;
-    } else {
-        subStatus.textContent = '';
-        document.getElementById('buyPremiumSubBtn').disabled = false;
-    }
-}
         
         function selectAvatar(index) {
             if (savedGameData.player.upgrades.ownedAvatars.includes(index)) {
@@ -2322,16 +2314,6 @@ function updateShopScreen() {
             }
         }
         
-        function selectOrBuyAvatar(index) {
-            if (savedGameData.player.upgrades.ownedAvatars.includes(index)) {
-                selectAvatar(index);
-            } else if (savedGameData.player.gold >= 75) {
-                savedGameData.player.gold -= 75;
-                savedGameData.player.upgrades.ownedAvatars.push(index);
-                savedGameData.player.upgrades.selectedAvatar = index;
-                updateShopScreen();
-            }
-        }
 
         function playAgain() {
             hideAllMenus();
