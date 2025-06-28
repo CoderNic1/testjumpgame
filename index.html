@@ -1434,7 +1434,7 @@ async function updatePLAIWalletBalance() {
         console.error("Failed to fetch PLAI balance:", err);
     }
 }
-savedGameData.global.ecosystemData.gameplayPool = 0; // reset the gameplay pool also remove later
+
 let savedGameData = {
     player: {
         gold: 0,                // BALANCE.gold
@@ -1507,6 +1507,7 @@ let savedGameData = {
     }
 
 }
+savedGameData.global.ecosystemData.gameplayPool = 0; // reset the gameplay pool also remove later
     let metamask, ethereum;
     if (window.MetaMaskSDK) {
         metamask = new window.MetaMaskSDK.MetaMaskSDK();
