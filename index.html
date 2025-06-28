@@ -2186,6 +2186,17 @@ function updateVaultScreen() {
         ((savedGameData.global.ecosystemData.userPLAISpent / savedGameData.global.ecosystemData.totalPLAISpent) * 100).toFixed(1) : '0';
     document.getElementById('userContribution').textContent = userContribution + '%';
 }
+
+function openGoldRush() {
+    hideAllMenus();
+    document.getElementById('goldRushMenu').style.display = 'block';
+    renderGoldRush();
+}
+function renderGoldRush() {
+        // Populate the Gold Rush event content here
+        document.getElementById('goldRushContent').innerHTML = '<p>Gold Rush event details go here.</p>';
+    }
+
         function openShop() {
             gameState = STATES.SHOP;
             hideAllMenus();
