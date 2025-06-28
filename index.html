@@ -954,7 +954,7 @@
     <p>Click and jump, collect as much as possible!</p>
 	<p>Make sure to only collect the coins and avoid the spikes.</p>
         </div>
-        <!-- Battke pass/jump pass menu -->
+        <!-- Battle pass/jump pass menu -->
         <div id="jumpPassMenu" class="menu" style="display: none;">
             <div class="battle-pass-container">
                 <div class="header">
@@ -1039,6 +1039,18 @@
             </div>
         </div>
 
+    <!-- event  Menu -->
+        <div id="eventsMenu" class="menu" style="display: none;">
+            <h2>🎉 Events</h2>
+            <div id="eventsList"></div>
+            <button onclick="goHome()" class="back-button">🏠 Back to Home</button>
+          </div>
+
+          <div id="goldRushMenu" class="menu" style="display: none;">
+            <h2>🌟 Gold Rush</h2>
+            <div id="goldRushContent"></div>
+            <button onclick="closeGoldRushMenu()" class="back-button">⬅️ Back to Events</button>
+          </div>
 
     <!-- Game Vault Menu -->
         <div id="vaultMenu" class="menu" style="display: none;">
@@ -1444,6 +1456,12 @@ let savedGameData = {
         expires: 0, // timestamp in ms
         freeTicketsClaimed: false // to prevent double-claiming
       },
+      goldRush: {
+        deposited: 0,         // Gold deposited this round
+        lastDraw: 0,          // Timestamp of last draw
+        result: null,         // {won: true/false, prize: n, refunded: true/false}
+        hasClaimed: false,     // Did the user claim their result?
+        goldRushResultSeen: 0, // timestamp of last result shown
     },
     userItems: {                // userItems
       unlocked: ['skin_red', 'bg_default', 'fx_none'],
@@ -1485,7 +1503,9 @@ let savedGameData = {
     vaultTicketsClaimed: 0 // Number of tickets already claimed
   }
   // NOTE: The reward definitions (gameData.rewards) are static and can stay outside gameState
-};
+    }
+
+}
     let metamask, ethereum;
     if (window.MetaMaskSDK) {
         metamask = new window.MetaMaskSDK.MetaMaskSDK();
@@ -2183,6 +2203,8 @@ function updateVaultScreen() {
             vaultMenu.style.display = 'none';
             tasksMenu.style.display = 'none';
             skinsMenu.style.display = 'none';
+            eventsMenu.style.display = 'none';
+            goldrushMenu.style.display = 'none';
             document.getElementById('wheelMenu').style.display = 'none';
             document.getElementById('jumpPassMenu').style.display = 'none';
         }
@@ -3966,6 +3988,7 @@ function claimVaultTickets() {
                        params: [{ chainId: '0x2105' }]
                    });
                    showRewardNotification("✅ Switched to Base network!");
+                   showGoldRushResultOnLogin();
                } catch (switchError) {
                    showRewardNotification("❌ Please switch to Base network in MetaMask.");
                    return;
@@ -4119,16 +4142,243 @@ function claimVaultTickets() {
             return false;
         }
     }
-    </script>
 
-    <script>
-    if (window.ethereum) {
+
+
+function renderEventsList() {
+    const eventsList = document.getElementById('eventsList');
+    eventsList.innerHTML = ''; // Clear previous
+
+    // Gold Rush event info
+    const now = new Date();
+    const firstOfMonth = new Date(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0);
+    const goldRushStart = firstOfMonth.getTime();
+    const goldRushEnd = goldRushStart + 7 * 24 * 60 * 60 * 1000; // 7 days
+
+    let eventStatus, timeLeft;
+    if (now.getTime() < goldRushStart) {
+        eventStatus = "Starts in";
+        timeLeft = goldRushStart - now.getTime();
+    } else if (now.getTime() < goldRushEnd) {
+        eventStatus = "Ends in";
+        timeLeft = goldRushEnd - now.getTime();
+    } else {
+        // Next month
+        const nextMonth = new Date(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0);
+        eventStatus = "Starts in";
+        timeLeft = nextMonth.getTime() - now.getTime();
+    }
+
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+    // Gold Rush event box
+    const goldRushBox = document.createElement('div');
+    goldRushBox.style = `
+        background: rgba(255, 215, 0, 0.12);
+        border: 2px solid #FFD700;
+        border-radius: 16px;
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 400px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: box-shadow 0.2s;
+    `;
+    goldRushBox.onmouseover = () => goldRushBox.style.boxShadow = '0 4px 16px #FFD70055';
+    goldRushBox.onmouseout = () => goldRushBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+    goldRushBox.onclick = () => {
+        openGoldRush();
+        document.getElementById('eventsMenu').style.display = 'none';
+    };
+
+    goldRushBox.innerHTML = `
+        <h3>🌟 Gold Rush</h3>
+        <p>Deposit coins for a chance to win a PLAI mystery box!<br>
+        The more you deposit, the higher your chance to win.</p>
+        <div style="font-weight:bold; color:#FFD700; margin:10px 0;">
+            ${eventStatus}: ${days}d ${hours}h ${mins}m ${secs}s
+        </div>
+        <div style="font-size:0.95em; color:#aaa;">
+            Runs every first week of the month.
+        </div>
+    `;
+
+    eventsList.appendChild(goldRushBox);
+}
+
+let eventsMenuInterval = null;
+function openEventsMenu() {
+    hideAllMenus();
+    document.getElementById('eventsMenu').style.display = 'block';
+    renderEventsList();
+    if (eventsMenuInterval) clearInterval(eventsMenuInterval);
+    eventsMenuInterval = setInterval(renderEventsList, 1000);
+}
+function closeEventsMenu() {
+    if (eventsMenuInterval) clearInterval(eventsMenuInterval);
+    document.getElementById('eventsMenu').style.display = 'none';
+}
+
+function getGoldRushWindow(now = Date.now()) {
+    const date = new Date(now);
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth();
+    const start = Date.UTC(year, month, 1, 0, 0, 0, 0);
+    const end = start + 7 * 24 * 60 * 60 * 1000; // 7 days
+    return { start, end };
+}
+
+function isGoldRushActive() {
+    const now = Date.now();
+    const { start, end } = getGoldRushWindow(now);
+    return now >= start && now < end;
+}
+
+function isGoldRushDrawn() {
+    const now = Date.now();
+    const { end } = getGoldRushWindow(now);
+    return now >= end;
+}
+
+function depositGoldRush() {
+    if (!isGoldRushActive()) {
+        showRewardNotification("Gold Rush is not active!");
+        return;
+    }
+    const input = document.getElementById('goldRushDepositInput');
+    let amount = parseInt(input.value, 10);
+    if (isNaN(amount) || amount <= 0) {
+        showRewardNotification("Enter a valid amount!");
+        return;
+    }
+    const maxDeposit = 10000 - savedGameData.player.goldRush.deposited;
+    amount = Math.min(amount, maxDeposit);
+    if (savedGameData.player.gold < amount) {
+        showRewardNotification("Not enough gold!");
+        return;
+    }
+    savedGameData.player.gold -= amount;
+    savedGameData.player.goldRush.deposited += amount;
+    saveAllData();
+    renderGoldRush();
+    showRewardNotification(`Deposited ${amount} gold!`);
+}
+
+function processGoldRushDraw() {
+    const now = Date.now();
+    const { end } = getGoldRushWindow(now);
+
+    // Only process if event ended, not already drawn for this round, and user participated
+    if (now >= end && savedGameData.player.goldRush.lastDraw !== end && savedGameData.player.goldRush.deposited > 0) {
+        // Calculate win chance (max 90%)
+        const chance = Math.min(0.9, savedGameData.player.goldRush.deposited / 10000 * 0.9);
+        const won = Math.random() < chance;
+
+        let prize = null, refunded = false;
+        if (won) {
+            // Prize tiers
+            const prizes = [
+                { amount: 1, chance: 0.35 },
+                { amount: 2, chance: 0.25 },
+                { amount: 5, chance: 0.15 },
+                { amount: 7, chance: 0.10 },
+                { amount: 10, chance: 0.08 },
+                { amount: 15, chance: 0.05 },
+                { amount: 20, chance: 0.02 }
+            ];
+            let rand = Math.random();
+            let cumulative = 0;
+            for (let p of prizes) {
+                cumulative += p.chance;
+                if (rand < cumulative) {
+                    prize = p.amount;
+                    break;
+                }
+            }
+            // Check if enough PLAI in pool
+            if (savedGameData.global.ecosystemData.jumpPassPool >= prize) {
+                savedGameData.global.ecosystemData.jumpPassPool -= prize;
+                savedGameData.player.plai += prize;
+                refunded = false;
+            } else {
+                // Not enough PLAI, refund gold
+                savedGameData.player.gold += savedGameData.player.goldRush.deposited;
+                prize = null;
+                refunded = true;
+            }
+        } else {
+            prize = null;
+            refunded = false;
+        }
+
+        savedGameData.player.goldRush.result = { won, prize, refunded };
+        savedGameData.player.goldRush.lastDraw = end;
+        savedGameData.player.goldRush.hasClaimed = false;
+        saveAllData();
+    }
+}
+
+function checkGoldRushResult() {
+    processGoldRushDraw();
+    const res = savedGameData.player.goldRush.result;
+    if (isGoldRushDrawn() && res && !savedGameData.player.goldRush.hasClaimed) {
+        let msg;
+        if (res.refunded) {
+            msg = `Gold Rush: Not enough PLAI in the pool. Your ${savedGameData.player.goldRush.deposited} gold was refunded.`;
+        } else if (res.won && res.prize) {
+            msg = `🎉 Gold Rush: You won ${res.prize} $PLAI!`;
+        } else {
+            msg = `Gold Rush: You didn't win this time. Try again next month!`;
+        }
+        showRewardNotification(msg);
+        savedGameData.player.goldRush.hasClaimed = true;
+        // Reset for next event
+        savedGameData.player.goldRush.deposited = 0;
+        saveAllData();
+    }
+}
+
+function showGoldRushResultOnLogin() {
+    processGoldRushDraw();
+    const res = savedGameData.player.goldRush.result;
+    const now = Date.now();
+    const { end } = getGoldRushWindow(now);
+
+    // Only show if: event is over, result exists, not seen yet for this draw, and user participated
+    if (
+        isGoldRushDrawn() &&
+        res &&
+        savedGameData.player.goldRush.lastDraw === end &&
+        savedGameData.player.goldRushResultSeen !== end
+    ) {
+        let msg;
+        if (res.refunded) {
+            msg = `Gold Rush: Not enough PLAI in the pool. Your gold was refunded.`;
+        } else if (res.won && res.prize) {
+            msg = `🎉 Gold Rush: You won ${res.prize} $PLAI!`;
+        } else {
+            msg = `Gold Rush: You didn't win this time. Try again next month!`;
+        }
+        showRewardNotification(msg);
+        savedGameData.player.goldRushResultSeen = end;
+        savedGameData.player.goldRush.deposited = 0;
+        savedGameData.player.goldRush.hasClaimed = true;
+        saveAllData();
+    }
+}
+
+if (window.ethereum) {
         window.ethereum.on('chainChanged', (chainId) => {
             if (chainId !== '0x2105') {
                 showRewardNotification("⚠️ Please switch to Base network to play!");
             }
         });
     }
+    
     </script>
     </body>
 </html>
