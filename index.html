@@ -947,6 +947,7 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
+        <button onclick="openEventsMenu()">🎉 Events</button>
 	</div>
 
     <p id="welcomeUser" style="font-size:1.1em; color:#FFD700; margin-top:10px; margin-bottom:0;"></p>
@@ -1898,7 +1899,7 @@ const TASK_POOL = [
                 document.getElementById('timer').style.display = 'none';
             }
         }
-
+        let secondsPlayedThisGame = 0;
         function startGame() {
             let secondsPlayedThisGame = 0;
             document.getElementById('ui').style.display = 'block';
@@ -1920,6 +1921,7 @@ const TASK_POOL = [
                 
                 if (timeLeft <= 0) {
                     endGame();
+                    return;
                 }
             }, 1000);
             
@@ -1939,6 +1941,7 @@ const TASK_POOL = [
         }
 
         function endGame() {
+            if (gameState === STATES.GAME_OVER) return; // Prevent double execution
             updateAllTasksProgress("play_time", secondsPlayedThisGame);
             if (savedGameData.player.username) {
                 saveHighScore(savedGameData.player.username, score);
