@@ -1027,7 +1027,7 @@
                     </div>
                 </div>
                 <!-- TODO: change the display none to block -->
-                <div class="vault-section" id="vaultSection" style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;"style="display:block;">
+                <div class="vault-section" id="vaultSection" style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;"style="display:none;">
                     <h2 style="color:#FFD700;">🎁 Vault Bonus</h2>
                     <p>For every <b>50 XP</b> you collect after reaching the final pass level as premium member, you earn <b>1 extra spin ticket</b>!</p>
                     <p id="vaultTicketsEarned" style="font-size:1.2em; color:#00FFAA;"></p>
@@ -1681,12 +1681,16 @@ const TASK_POOL = [
     { type: "collect_clocks", isDaily: true, min: 2, max: 5, desc: n => `Collect ${n} clocks` },
     { type: "collect_magnets", isDaily: true, min: 1, max: 3, desc: n => `Collect ${n} magnets` },
     { type: "score_points", isDaily: true, min: 100, max: 300, desc: n => `Score ${n} points in total` },
+    { type: "play_time", isDaily: true, min: 60, max: 180, desc: n => `Play for ${n} seconds in total` },
+    { type: "spend_gold", isDaily: true, min: 100, max: 300, desc: n => `Spend ${n} gold` },
     // Weekly tasks (harder)
     { type: "play_games", isDaily: false, min: 10, max: 20, desc: n => `Play ${n} games` },
     { type: "collect_coins", isDaily: false, min: 200, max: 500, desc: n => `Collect ${n} coins` },
     { type: "collect_clocks", isDaily: false, min: 10, max: 20, desc: n => `Collect ${n} clocks` },
     { type: "collect_magnets", isDaily: false, min: 5, max: 10, desc: n => `Collect ${n} magnets` },
     { type: "score_points", isDaily: false, min: 2000, max: 5000, desc: n => `Score ${n} points in total` },
+    { type: "play_time", isDaily: false, min: 600, max: 1800, desc: n => `Play for ${Math.floor(n/60)} minutes in total` },
+    { type: "spend_gold", isDaily: false, min: 1000, max: 3000, desc: n => `Spend ${n} gold` },
 ];
 
 
@@ -1896,6 +1900,7 @@ const TASK_POOL = [
         }
 
         function startGame() {
+            let secondsPlayedThisGame = 0;
             document.getElementById('ui').style.display = 'block';
             document.getElementById('timer').style.display = 'block';
             gameState = STATES.PLAYING;
@@ -1910,6 +1915,7 @@ const TASK_POOL = [
             // Start timer
             gameTimer = setInterval(() => {
                 timeLeft--;
+                secondsPlayedThisGame++;
                 timeLeftElement.textContent = timeLeft;
                 
                 if (timeLeft <= 0) {
@@ -1933,6 +1939,7 @@ const TASK_POOL = [
         }
 
         function endGame() {
+            updateAllTasksProgress("play_time", secondsPlayedThisGame);
             if (savedGameData.player.username) {
                 saveHighScore(savedGameData.player.username, score);
             }
@@ -2246,6 +2253,7 @@ function updateVaultScreen() {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.jumpLevel++;
+                    updateAllTasksProgress("spend_gold", amountSpent);
                     updateShopScreen();
                 }
             } else if (type === 'time') {
@@ -2253,6 +2261,7 @@ function updateVaultScreen() {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.timeLevel++;
+                    updateAllTasksProgress("spend_gold", amountSpent);
                     updateShopScreen();
                 }
             }
@@ -3285,20 +3294,48 @@ if (rewardMessage) {
                     savedGameData.player.gold += reward.amount;
                     notificationMessage = `🪙 +${reward.amount} Coins claimed!`;
                     break;
-                case 'plai':
-                savedGameData.player.plai += reward.amount;
+                    case 'plai':
+                if (savedGameData.global.ecosystemData.jumpPassPool >= reward.amount) {
+                    savedGameData.global.ecosystemData.jumpPassPool -= reward.amount;
+                    savedGameData.player.plai += reward.amount;
                     notificationMessage = `💎 +${reward.amount} $PLAI claimed!`;
-                    break;
+                } else {
+                    // Not enough PLAI in the pool, convert to gold
+                    const goldAmount = reward.amount * 50;
+                    savedGameData.player.gold += goldAmount;
+                    notificationMessage = `💎 PLAI pool is empty! You received ${goldAmount} Gold instead.`;
+                 }
+                 break;
                 case 'boost':
                     notificationMessage = `⚡ ${reward.amount} boost claimed! (${reward.duration})`;
                     activateBooster(reward.amount, reward.duration);
                     break;
-                case 'background':
-                    notificationMessage = `🎨 ${reward.amount} background unlocked!`;
-                    if (reward.itemId) {
-                        unlockItem(reward.itemId);
-                    }
-                    break;
+                    case 'background':
+    // Check if already owned
+    if (reward.itemId && savedGameData.player.userItems.unlocked.includes(reward.itemId)) {
+        // Already owned, give 10 PLAI (or gold if not enough in pool)
+        let plaiReward = 10;
+        if (savedGameData.global.ecosystemData.jumpPassPool >= plaiReward) {
+            savedGameData.global.ecosystemData.jumpPassPool -= plaiReward;
+            savedGameData.player.plai += plaiReward;
+            notificationMessage = `🎨 You already own this background! +${plaiReward} $PLAI instead!`;
+        } else {
+            // Not enough PLAI, convert to gold
+            const availablePLAI = savedGameData.global.ecosystemData.jumpPassPool;
+            const goldFromPLAI = availablePLAI * 50;
+            savedGameData.player.plai += availablePLAI;
+            savedGameData.global.ecosystemData.jumpPassPool = 0;
+            const goldReward = (plaiReward - availablePLAI) * 50;
+            savedGameData.player.gold += goldFromPLAI + goldReward;
+            notificationMessage = `🎨 You already own this background! Pool empty: You received ${availablePLAI > 0 ? availablePLAI + " $PLAI and " : ""}${goldFromPLAI + goldReward} Gold instead!`;
+        }
+    } else {
+        notificationMessage = `🎨 ${reward.amount} background unlocked!`;
+        if (reward.itemId) {
+            unlockItem(reward.itemId);
+        }
+    }
+    break;
                 case 'ticket':
                 savedGameData.player.tickets += reward.amount;
                     notificationMessage = `🎟️ +${reward.amount} Spin a Wheel Ticket(s) claimed!`;
@@ -3558,7 +3595,7 @@ function updateVaultSection() {
     document.getElementById('vaultTicketsEarned').textContent =
         `You have ${tickets} unclaimed ticket(s).`;
     document.getElementById('claimVaultTicketsBtn').disabled = tickets === 0 || !savedGameData.pass.premiumUnlocked;}
-    
+
 function getVaultTicketsEarned() {
     return Math.floor((savedGameData.pass.vaultXP || 0) / 50) - (savedGameData.pass.vaultTicketsClaimed || 0);
 }
@@ -3717,6 +3754,7 @@ function claimVaultTickets() {
                         div.onclick = () => {
                             if (savedGameData.player.gold >= item.price) {
                                 savedGameData.player.gold -= item.price;
+                                updateAllTasksProgress("spend_gold", item.price);
                                 unlockItem(item.id);
                                 // Automatically select the new item
                                 savedGameData.player.userItems.selected[type] = item.id; 
