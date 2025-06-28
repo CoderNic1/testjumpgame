@@ -1809,7 +1809,7 @@ const TASK_POOL = [
             // Distribute rewards (future: send PLAI, for now: just log)
             let leaderboard = savedGameData.global.leaderboard || [];
             savedGameData.global.leaderboard = savedGameData.global.leaderboard.slice(0, 20); // Top 20 for previous week
-            const totalReward = Math.floor(savedGameData.global.ecosystemData.leaderboardPool * 0.5);
+            const totalReward = Math.floor(savedGameData.global.ecosystemData.leaderboardPool * 0.5); // reward is 50% of the leaderboard pool
             let prevWeek = [];
             if (savedGameData.global.leaderboard.length > 0 && totalReward > 0) {
                 // Reward distribution for top 10 (example: 1st 25%, 2nd 18%, 3rd 13%, 4th 10%, 5th 8%, 6th 7%, 7th 6%, 8th 5%, 9th 4%, 10th 4%)
@@ -1819,7 +1819,7 @@ const TASK_POOL = [
                     if (i < 10) reward = Math.floor(totalReward * rewards[i]);
                     prevWeek.push({ name: entry.name, score: entry.score, reward });
                     if (reward > 0) {
-                        console.log(`Would reward ${entry.name} with ${reward} PLAI`);
+                        console.log(`Would reward ${entry.name} with ${reward} PLAI`); // future: send PLAI, for now: just log make sure to call the payoutPLAI function smart contract needed
                     }
                 });
                 savedGameData.global.ecosystemData.leaderboardPool -= totalReward;
@@ -2191,11 +2191,63 @@ function openGoldRush() {
     hideAllMenus();
     document.getElementById('goldRushMenu').style.display = 'block';
     renderGoldRush();
-}
-function renderGoldRush() {
-        // Populate the Gold Rush event content here
-        document.getElementById('goldRushContent').innerHTML = '<p>Gold Rush event details go here.</p>';
+    if (!isGoldRushActive()) {
+        showRewardNotification("Gold Rush is not active!");
     }
+}
+
+function renderGoldRush() {
+    const deposited = savedGameData.player.goldRush.deposited || 0;
+    const maxDeposit = 10000;
+    const canDeposit = isGoldRushActive();
+
+    let html = `
+        <h3>🌟 Gold Rush Event</h3>
+        <p>Deposit your gold for a chance to win a PLAI mystery box!<br>
+        The more you deposit, the higher your chance to win.</p>
+        <p><b>Your deposited gold this round:</b> ${deposited} / ${maxDeposit}</p>
+    `;
+
+    if (canDeposit) {
+        html += `
+            <input id="goldRushDepositInput" type="number" min="1" max="${maxDeposit - deposited}" placeholder="Amount to deposit" style="width:120px; margin-right:10px;">
+            <button onclick="depositGoldRush()">Deposit</button>
+        `;
+    } else {
+        html += `<p style="color:#FFD700;">Gold Rush is not active right now. Please come back during the first week of the month!</p>`;
+    }
+
+    document.getElementById('goldRushContent').innerHTML = html;
+}
+
+function depositGoldRush() {
+    const deposited = savedGameData.player.goldRush.deposited || 0;
+    const maxDeposit = 10000;
+    const input = document.getElementById('goldRushDepositInput');
+    let amount = parseInt(input.value, 10);
+
+    if (!isGoldRushActive()) {
+        showRewardNotification("Gold Rush is not active!");
+        return;
+    }
+    if (isNaN(amount) || amount <= 0) {
+        showRewardNotification("Enter a valid amount!");
+        return;
+    }
+    if (amount > savedGameData.player.gold) {
+        showRewardNotification("Not enough gold!");
+        return;
+    }
+    if (amount > maxDeposit - deposited) {
+        amount = maxDeposit - deposited;
+    }
+
+    savedGameData.player.goldRush.deposited += amount;
+    savedGameData.player.gold -= amount;
+    saveAllData();
+    renderGoldRush();
+    showRewardNotification(`Deposited ${amount} gold!`);
+}
 
         function openShop() {
             gameState = STATES.SHOP;
@@ -2438,27 +2490,22 @@ async function buyPremiumSub() {
             }, 1000);
         }
 
-	function processGiftReward() {
-    		const plaiChance = Math.random() < 0.2; // 20% chance for PLAI
-    		const plaiReward = Math.floor(Math.random() * 5) + 1; // 1-5 PLAI
-    
-    		if (plaiChance && savedGameData.global.ecosystemData.gameplayPool >= plaiReward) {
-        		// Award PLAI
-        		savedGameData.player.plai += plaiReward;
-        		savedGameData.global.ecosystemData.gameplayPool -= plaiReward;
-        
-        		// Show reward message
-        		showRewardMessage(`+${plaiReward} PLAI!`, '#9D4EDD');
-        		return;
-    			}
-    
-    		// Award coins instead
-    		const coinReward = Math.floor(Math.random() * 3) + 1; // 1-3 coins
-    		coinsCollectedThisGame += coinReward;
-    		updateUI();
-    		showRewardMessage(`+${coinReward} coins!`, '#FFD700');
-		}
+        function processGiftReward() {
+    const plaiChance = Math.random() < 0.2; // 20% chance for PLAI
+    const plaiReward = Math.floor(Math.random() * 5) + 1; // 1-5 PLAI
 
+    if (plaiChance && payoutPLAI(plaiReward, 'gameplayPool')) {
+        // Award PLAI
+        showRewardMessage(`+${plaiReward} PLAI!`, '#9D4EDD');
+        return;
+    }
+
+    // Award coins instead
+    const coinReward = Math.floor(Math.random() * 3) + 1; // 1-3 coins
+    coinsCollectedThisGame += coinReward;
+    updateUI();
+    showRewardMessage(`+${coinReward} coins!`, '#FFD700');
+}
 		function showRewardMessage(text, color) {
     		// Create floating reward message (similar to spike hit message)
     		rewardMessage = {
@@ -3331,17 +3378,15 @@ if (rewardMessage) {
                     notificationMessage = `🪙 +${reward.amount} Coins claimed!`;
                     break;
                     case 'plai':
-                if (savedGameData.global.ecosystemData.jumpPassPool >= reward.amount) {
-                    savedGameData.global.ecosystemData.jumpPassPool -= reward.amount;
-                    savedGameData.player.plai += reward.amount;
+                    if (payoutPLAI(reward.amount, 'jumpPassPool')) { // future: change to gameplayPool
                     notificationMessage = `💎 +${reward.amount} $PLAI claimed!`;
-                } else {
-                    // Not enough PLAI in the pool, convert to gold
-                    const goldAmount = reward.amount * 50;
-                    savedGameData.player.gold += goldAmount;
-                    notificationMessage = `💎 PLAI pool is empty! You received ${goldAmount} Gold instead.`;
-                 }
-                 break;
+                    } else {
+        // Not enough PLAI in the pool, convert to gold
+            const goldAmount = reward.amount * 50;
+            savedGameData.player.gold += goldAmount;
+            notificationMessage = `💎 PLAI pool is empty! You received ${goldAmount} Gold instead.`;
+            }
+            break;
                 case 'boost':
                     notificationMessage = `⚡ ${reward.amount} boost claimed! (${reward.duration})`;
                     activateBooster(reward.amount, reward.duration);
@@ -3351,19 +3396,18 @@ if (rewardMessage) {
     if (reward.itemId && savedGameData.player.userItems.unlocked.includes(reward.itemId)) {
         // Already owned, give 10 PLAI (or gold if not enough in pool)
         let plaiReward = 10;
-        if (savedGameData.global.ecosystemData.jumpPassPool >= plaiReward) {
-            savedGameData.global.ecosystemData.jumpPassPool -= plaiReward;
-            savedGameData.player.plai += plaiReward;
+        if (payoutPLAI(plaiReward, 'jumpPassPool')) {
             notificationMessage = `🎨 You already own this background! +${plaiReward} $PLAI instead!`;
         } else {
             // Not enough PLAI, convert to gold
             const availablePLAI = savedGameData.global.ecosystemData.jumpPassPool;
-            const goldFromPLAI = availablePLAI * 50;
-            savedGameData.player.plai += availablePLAI;
-            savedGameData.global.ecosystemData.jumpPassPool = 0;
+            if (availablePLAI > 0) {
+                // Pay out remaining PLAI, then convert the rest to gold
+                payoutPLAI(availablePLAI, 'jumpPassPool');
+            }
             const goldReward = (plaiReward - availablePLAI) * 50;
-            savedGameData.player.gold += goldFromPLAI + goldReward;
-            notificationMessage = `🎨 You already own this background! Pool empty: You received ${availablePLAI > 0 ? availablePLAI + " $PLAI and " : ""}${goldFromPLAI + goldReward} Gold instead!`;
+            savedGameData.player.gold += (availablePLAI * 50) + goldReward;
+            notificationMessage = `🎨 You already own this background! Pool empty: You received ${availablePLAI > 0 ? availablePLAI + " $PLAI and " : ""}${(availablePLAI * 50) + goldReward} Gold instead!`;
         }
     } else {
         notificationMessage = `🎨 ${reward.amount} background unlocked!`;
@@ -3949,30 +3993,28 @@ function claimVaultTickets() {
     }
 
     function handlePrize(prize) {
-        let prizeMessage = '';
-        if (prize.type === 'nothing') {
-            prizeMessage = "💔 Better luck next time!";
-        } else if (prize.type === 'gold') {
-            savedGameData.player.gold += prize.amount;
-            prizeMessage = `🪙 You won ${prize.amount} Gold!`;
+    let prizeMessage = '';
+    if (prize.type === 'nothing') {
+        prizeMessage = "💔 Better luck next time!";
+    } else if (prize.type === 'gold') {
+        savedGameData.player.gold += prize.amount;
+        prizeMessage = `🪙 You won ${prize.amount} Gold!`;
+        updatePassBalances();
+    } else if (prize.type === 'plai') {
+        if (payoutPLAI(prize.amount, 'jumpPassPool')) {
+            prizeMessage = `💎 You won ${prize.amount} PLAI!`;
+            updateVaultScreen(); // Update pool display
             updatePassBalances();
-        } else if (prize.type === 'plai') {
-            if (savedGameData.global.ecosystemData.jumpPassPool >= prize.amount) {
-                savedGameData.global.ecosystemData.jumpPassPool -= prize.amount;
-                savedGameData.player.plai += prize.amount;
-                prizeMessage = `💎 You won ${prize.amount} PLAI!`;
-                updateVaultScreen(); // Update pool display
-                updatePassBalances();
-            } else {
-                const goldConversion = prize.amount * 50;
-                savedGameData.player.gold += goldConversion;
-                prizeMessage = `💎 PLAI pool is empty! You received ${goldConversion} Gold instead.`;
-                updatePassBalances();
-            }
+        } else {
+            const goldConversion = prize.amount * 50;
+            savedGameData.player.gold += goldConversion;
+            prizeMessage = `💎 PLAI pool is empty! You received ${goldConversion} Gold instead.`;
+            updatePassBalances();
         }
-        document.getElementById('lastPrizeDisplay').textContent = prizeMessage;
-        showRewardNotification(prizeMessage);
     }
+    document.getElementById('lastPrizeDisplay').textContent = prizeMessage;
+    showRewardNotification(prizeMessage);
+}
 
     function playAgain() {
         hideAllMenus();
@@ -4311,9 +4353,7 @@ function processGoldRushDraw() {
                 }
             }
             // Check if enough PLAI in pool
-            if (savedGameData.global.ecosystemData.jumpPassPool >= prize) {
-                savedGameData.global.ecosystemData.jumpPassPool -= prize;
-                savedGameData.player.plai += prize;
+            if (payoutPLAI(prize, 'jumpPassPool')) {
                 refunded = false;
             } else {
                 // Not enough PLAI, refund gold
@@ -4325,7 +4365,6 @@ function processGoldRushDraw() {
             prize = null;
             refunded = false;
         }
-
         savedGameData.player.goldRush.result = { won, prize, refunded };
         savedGameData.player.goldRush.lastDraw = end;
         savedGameData.player.goldRush.hasClaimed = false;
@@ -4380,6 +4419,25 @@ function showGoldRushResultOnLogin() {
         savedGameData.player.goldRush.hasClaimed = true;
         saveAllData();
     }
+}
+
+/**
+ * Payout PLAI to the user from a specific pool. function that will be used to contact the smart contract to pay out PLAI.
+ * Pays out PLAI to the user from a specific pool.
+ * @param {number} amount - Amount of PLAI to pay out.
+ * @param {string} pool - Pool name, e.g. 'jumpPassPool'
+ * @returns {boolean} - True if payout succeeded, false if not enough in pool.
+ */
+ function payoutPLAI(amount, pool) {
+    if (savedGameData.global.ecosystemData[pool] >= amount) {
+        savedGameData.global.ecosystemData[pool] -= amount;
+        savedGameData.player.plai += amount;
+        // In the future, call smart contract payout here!
+        saveAllData();
+        return true;
+    }
+    // Not enough in pool
+    return false;
 }
 
 if (window.ethereum) {
