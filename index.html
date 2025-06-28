@@ -1057,7 +1057,7 @@
             <h1>💰 Game Vault</h1>
             <div class="currency-display">
                 <div class="plai-icon"></div>
-                <span>Your PLAI: <span id="vaultUserPLAI">1000</span></span>
+                <span>Your PLAI: <span id="vaultUserPLAI">undefined</span></span>
             </div>
             
             <div class="stats">
@@ -1122,7 +1122,7 @@
                 <div class="coin-icon"></div>
                 <span>Gold: <span id="shopGold">0</span></span>
                 <div class="plai-icon" style="margin-left: 20px;"></div>
-                <span>PLAI: <span id="shopPLAI">1000</span></span>
+                <span>PLAI: <span id="shopPLAI">undefined</span></span>
             </div>
             
             <div class="shop-section">
@@ -1434,7 +1434,7 @@ async function updatePLAIWalletBalance() {
         console.error("Failed to fetch PLAI balance:", err);
     }
 }
-
+savedGameData.global.ecosystemData.gameplayPool = 0; // reset the gameplay pool also remove later
 let savedGameData = {
     player: {
         gold: 0,                // BALANCE.gold
@@ -1456,18 +1456,19 @@ let savedGameData = {
         expires: 0, // timestamp in ms
         freeTicketsClaimed: false // to prevent double-claiming
       },
-      goldRush: {
+
+    userItems: {                // userItems
+      unlocked: ['skin_red', 'bg_default', 'fx_none'],
+      selected: { skin: 'skin_red', background: 'bg_default', effect: 'fx_none' }
+    }
+  },
+  goldRush: {
         deposited: 0,         // Gold deposited this round
         lastDraw: 0,          // Timestamp of last draw
         result: null,         // {won: true/false, prize: n, refunded: true/false}
         hasClaimed: false,     // Did the user claim their result?
         goldRushResultSeen: 0, // timestamp of last result shown
     },
-    userItems: {                // userItems
-      unlocked: ['skin_red', 'bg_default', 'fx_none'],
-      selected: { skin: 'skin_red', background: 'bg_default', effect: 'fx_none' }
-    }
-  },
   activeBoosters: {
     xp: { multiplier: 1, expires: 0 },
     coins: { multiplier: 1, expires: 0 }
