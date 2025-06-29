@@ -2213,9 +2213,10 @@ function openGoldRush() {
            showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
            return;
        }
+       else {
        hideAllMenus();
        document.getElementById('goldRushMenu').style.display = 'block';
-       renderGoldRush();
+       renderGoldRush();}
    }
 
    function renderGoldRush() {
@@ -4309,7 +4310,8 @@ function getGoldRushWindow(now = Date.now()) {
 function isGoldRushActive() {
     const now = Date.now();
     const { start, end } = getGoldRushWindow(now);
-    return now >= start && now < end;
+    // return now >= start && now < end;
+    return true;
 }
 
 function isGoldRushDrawn() {
