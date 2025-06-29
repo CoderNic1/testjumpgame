@@ -194,6 +194,9 @@
             font-size: clamp(18px, 6vw, 24px) !important;
             line-height: 1.1;
                 }
+                .event-box {
+                margin: 10px 0;
+                padding: 12px;}
         }
         
         @media (min-width: 1200px) {
@@ -901,7 +904,23 @@
             .currency-display {
                 font-size: clamp(16px, 4vw, 18px);
             }
+            .event-box {
+            background: rgba(255, 215, 0, 0.12);
+            border: 2px solid #FFD700;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: box-shadow 0.2s;
+            max-width: 100%;
+            }
+
         
+            
             </style>
     <script src="https://cdn.jsdelivr.net/npm/@metamask/sdk/dist/metamask-sdk.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
@@ -2190,24 +2209,64 @@ function updateVaultScreen() {
 }
 
 function openGoldRush() {
-    hideAllMenus();
-    document.getElementById('goldRushMenu').style.display = 'block';
-    renderGoldRush();
-    if (!isGoldRushActive()) {
-        showRewardNotification("Gold Rush is not active!");
-    }
-}
+       if (!isGoldRushActive()) {
+           showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
+           return;
+       }
+       hideAllMenus();
+       document.getElementById('goldRushMenu').style.display = 'block';
+       renderGoldRush();
+   }
 
-function renderGoldRush() {
+   function renderGoldRush() {
     const deposited = savedGameData.player.goldRush.deposited || 0;
-    const maxDeposit = 10000;
+    const maxDeposit = 10000; // max deposit is 10000 gold
     const canDeposit = isGoldRushActive();
+
+    // Calculate progress and win chance
+    const percent = Math.min(100, (deposited / maxDeposit) * 100);
+    const winChance = Math.min(90, (deposited / maxDeposit) * 90);
+
+    // Rewards and odds (should match your draw logic)
+    const rewards = [
+        { amount: 1, chance: 35 },
+        { amount: 2, chance: 25 },
+        { amount: 5, chance: 15 },
+        { amount: 7, chance: 10 },
+        { amount: 10, chance: 8 },
+        { amount: 15, chance: 5 },
+        { amount: 20, chance: 2 }
+    ];
 
     let html = `
         <h3>🌟 Gold Rush Event</h3>
         <p>Deposit your gold for a chance to win a PLAI mystery box!<br>
         The more you deposit, the higher your chance to win.</p>
         <p><b>Your deposited gold this round:</b> ${deposited} / ${maxDeposit}</p>
+        <div style="background:#333; border-radius:8px; height:20px; width:100%; margin:10px 0; overflow:hidden;">
+            <div style="background:#FFD700; width:${percent}%; height:100%;"></div>
+        </div>
+        <div style="margin:10px 0; color:#FFD700; font-weight:bold;">
+            Current Win Chance: ${winChance.toFixed(1)}%
+        </div>
+        <div style="margin:10px 0;">
+            <b>Possible Rewards if you win:</b>
+            <table style="width:100%; margin-top:5px; color:white; background:rgba(0,0,0,0.15); border-radius:8px;">
+                <tr>
+                    <th style="padding:4px 0;">PLAI</th>
+                    <th style="padding:4px 0;">Chance</th>
+                </tr>
+                ${rewards.map(r => `
+                    <tr>
+                        <td style="padding:2px 0; text-align:center;">${r.amount}</td>
+                        <td style="padding:2px 0; text-align:center;">${r.chance}%</td>
+                    </tr>
+                `).join('')}
+            </table>
+            <div style="font-size:0.95em; color:#FFD700; margin-top:4px;">
+                (If you win, you get one of these at random)
+            </div>
+        </div>
     `;
 
     if (canDeposit) {
@@ -2221,8 +2280,6 @@ function renderGoldRush() {
 
     document.getElementById('goldRushContent').innerHTML = html;
 }
-
-
 
         function openShop() {
             gameState = STATES.SHOP;
@@ -4204,18 +4261,7 @@ function renderEventsList() {
 
     // Gold Rush event box
     const goldRushBox = document.createElement('div');
-    goldRushBox.style = `
-        background: rgba(255, 215, 0, 0.12);
-        border: 2px solid #FFD700;
-        border-radius: 16px;
-        padding: 20px;
-        margin: 20px auto;
-        max-width: 400px;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        text-align: center;
-        transition: box-shadow 0.2s;
-    `;
+    goldRushBox.className = 'event-box';
     goldRushBox.onmouseover = () => goldRushBox.style.boxShadow = '0 4px 16px #FFD70055';
     goldRushBox.onmouseout = () => goldRushBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
     goldRushBox.onclick = () => {
