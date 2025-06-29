@@ -1507,7 +1507,7 @@ let savedGameData = {
     }
 
 }
-savedGameData.global.ecosystemData.gameplayPool = 0; // reset the gameplay pool also remove later
+
     let metamask, ethereum;
     if (window.MetaMaskSDK) {
         metamask = new window.MetaMaskSDK.MetaMaskSDK();
@@ -2222,34 +2222,7 @@ function renderGoldRush() {
     document.getElementById('goldRushContent').innerHTML = html;
 }
 
-function depositGoldRush() {
-    const deposited = savedGameData.player.goldRush.deposited || 0;
-    const maxDeposit = 10000;
-    const input = document.getElementById('goldRushDepositInput');
-    let amount = parseInt(input.value, 10);
 
-    if (!isGoldRushActive()) {
-        showRewardNotification("Gold Rush is not active!");
-        return;
-    }
-    if (isNaN(amount) || amount <= 0) {
-        showRewardNotification("Enter a valid amount!");
-        return;
-    }
-    if (amount > savedGameData.player.gold) {
-        showRewardNotification("Not enough gold!");
-        return;
-    }
-    if (amount > maxDeposit - deposited) {
-        amount = maxDeposit - deposited;
-    }
-
-    savedGameData.player.goldRush.deposited += amount;
-    savedGameData.player.gold -= amount;
-    saveAllData();
-    renderGoldRush();
-    showRewardNotification(`Deposited ${amount} gold!`);
-}
 
         function openShop() {
             gameState = STATES.SHOP;
