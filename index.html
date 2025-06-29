@@ -966,7 +966,7 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
-        <button onclick="openEventsMenu()">🎉 Events</button>
+        <button onclick="openEventsMenu()">🎉 Events</button> <!-- TODO: change to openEventsMenu() -->
 	</div>
 
     <p id="welcomeUser" style="font-size:1.1em; color:#FFD700; margin-top:10px; margin-bottom:0;"></p>
@@ -1175,7 +1175,7 @@
                 </div>
             </div>
 
-            <div class="shop-section" id="premiumSubSection" style="display:none;">
+            <div class="shop-section" id="premiumSubSection" style="display:block;"> // change display none to block
                 <h2>🌟 Premium Subscription</h2>
                 <div class="shop-item">
                     <div class="shop-item-info">
@@ -2324,7 +2324,7 @@ function openGoldRush() {
     ];
 
     let html = `
-        <div class="currency-display" style="justify-content: flex-start; margin-bottom: 18px;">
+        <div class="currency-display" style="justify-content: center; margin-bottom: 18px;">
             <div class="coin-icon"></div>
             <span style="font-size:1.1em;">Your Gold: <b>${savedGameData.player.gold}</b></span>
         </div>
@@ -4407,8 +4407,7 @@ function getGoldRushWindow(now = Date.now()) {
 function isGoldRushActive() {
     const now = Date.now();
     const { start, end } = getGoldRushWindow(now);
-    // return now >= start && now < end;
-    return true;
+     return now >= start && now < end;
 
 }
 
