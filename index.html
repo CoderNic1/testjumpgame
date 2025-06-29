@@ -2159,9 +2159,8 @@ const TASK_POOL = [
             document.getElementById('leaderboardResetTimer').textContent = resetText;
         }
 
-        let leaderboardTimerInterval = null;
 
-// ... existing code ...
+
 function showLeaderboardPage(page) {
             const leaderboardBody = document.getElementById('leaderboardBody');
             document.getElementById('currentLbTab').style.background = page === 'current' ? '#FFD700' : '';
@@ -2223,7 +2222,7 @@ function showLeaderboardPage(page) {
             }
         }
 
-
+        let leaderboardTimerInterval = null; // Declare this near the top of your script
         function showLeaderboard() {
            gameState = STATES.LEADERBOARD;
            hideAllMenus();
