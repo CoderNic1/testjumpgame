@@ -1195,6 +1195,7 @@
                         99.99
                     </div>
                     <button id="buyPremiumSubBtn" onclick="buyPremiumSub()" class="menu-btn">Buy</button>
+                    <span id="premiumSubStatus" style="margin-left:10px; color:#00FFAA;"></span>
                 </div>
             </div>
                        
@@ -1515,11 +1516,7 @@ const DEFAULT_SAVED_GAME_DATA = {
         },
         vaultXP: 0,
         vaultTicketsClaimed: 0
-    },
-    activeBoosters: {
-        xp: { multiplier: 1, expires: 0 },
-        coins: { multiplier: 1, expires: 0 }
-    },
+    }
 
 };
 /*
@@ -1874,13 +1871,13 @@ const TASK_POOL = [
                 savedGameData.tasks.daily= generateTasks(true);
                 savedGameData.tasks.dailyReset = getNextDailyResetUTC();
                 changed = true;
-             }
-            if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
-                savedGameData.tasks.weekly = generateTasks(false);
-                savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-                changed = true;
-
             }
+            if (!savedGameData.global.previousLeaderboard || now > savedGameData.global.previousLeaderboard) {
+                savedGameData.tasks.weekly = generateTasks(false);
+                savedGameData.global.previousLeaderboard = getNextWeeklyResetUTC();
+                changed = true;
+            }
+
         }
 
         function getNextLeaderboardResetUTC() {
@@ -2290,15 +2287,15 @@ function updateVaultScreen() {
 }
 
 function openGoldRush() {
-   if (!isGoldRushActive()) {
-       showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
-       return;
+       if (!isGoldRushActive()) {
+           showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
+           return;
+       }
+       else {
+       hideAllMenus();
+       document.getElementById('goldRushMenu').style.display = 'block';
+       renderGoldRush();}
    }
-   // Only hide menus and show the event if active
-   hideAllMenus();
-   document.getElementById('goldRushMenu').style.display = 'block';
-   renderGoldRush();
-}
 
    function renderGoldRush() {
     if (!savedGameData.player.goldRush) {
@@ -2454,26 +2451,15 @@ function openGoldRush() {
 	    document.getElementById('giftSpeedButton').disabled = savedGameData.player.upgrades.giftSpeedLevel >= savedGameData.player.upgrades.giftSpeedMaxLevel || (savedGameData.player.plai+1) < giftSpeedCost;
 	    document.getElementById('giftSpeedButton').textContent = savedGameData.player.upgrades.giftSpeedLevel >= (savedGameData.player.upgrades.giftSpeedMaxLevel) ? 'Owned' : 'Buy';
             
-        const subBtn = document.getElementById('buyPremiumSubBtn');
-if (isPremiumSubActive()) {
-    const msLeft = savedGameData.player.premiumSub.expires - Date.now();
-    const days = Math.floor(msLeft / (24*60*60*1000));
-    const hours = Math.floor((msLeft % (24*60*60*1000)) / (60*60*1000));
-    const minutes = Math.floor((msLeft % (60*60*1000)) / (60*1000));
-    let timeLeft = '';
-    if (days > 0) {
-        timeLeft = `${days}d ${hours}h left`;
-    } else if (hours > 0) {
-        timeLeft = `${hours}h ${minutes}m left`;
+        const subStatus = document.getElementById('premiumSubStatus');
+    if (isPremiumSubActive()) {
+        const daysLeft = Math.ceil((savedGameData.player.premiumSub.expires - Date.now()) / (24*60*60*1000));
+        subStatus.textContent = `Active (${daysLeft}d left)`;
+        document.getElementById('buyPremiumSubBtn').disabled = true;
     } else {
-        timeLeft = `${minutes}m left`;
+        subStatus.textContent = '';
+        document.getElementById('buyPremiumSubBtn').disabled = false;
     }
-    subBtn.textContent = `Active (${timeLeft})`;
-    subBtn.disabled = true;
-} else {
-    subBtn.textContent = 'Buy';
-    subBtn.disabled = false;
-}
         }
         
         function buyUpgrade(type) {
@@ -2541,12 +2527,6 @@ async function buyPremiumSub() {
         savedGameData.player.premiumSub.expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
         savedGameData.player.premiumSub.freeTicketsClaimed = false;
         showRewardNotification("🌟 Premium Subscription activated for 7 days!");
-        if (isPremiumSubActive() && !savedGameData.player.premiumSub.freeTicketsClaimed) {
-        savedGameData.player.tickets += 3; // buying a subscription gives 3 free spin tickets
-        savedGameData.player.premiumSub.freeTicketsClaimed = true;
-        showRewardNotification("🎟️ 3 free spin tickets added!");
-        saveAllData();
-        }
         updateShopScreen();
         saveAllData();
     }
@@ -3309,7 +3289,7 @@ if (rewardMessage) {
             document.getElementById('weeklyTab').style.background = !showingDailyTasks ? '#FFD700' : '';
 
             // Reset timer
-            let resetTime = showingDailyTasks ? savedGameData.tasks.dailyReset : savedGameData.tasks.weeklyReset;
+            let resetTime = showingDailyTasks ? savedGameData.tasks.dailyReset : savedGameData.global.previousLeaderboard;
             let timeLeft = Math.max(0, Math.floor((resetTime - now) / 1000));
             let hours = Math.floor(timeLeft / 3600);
             let mins = Math.floor((timeLeft % 3600) / 60);
@@ -4291,6 +4271,12 @@ function claimVaultTickets() {
 
     <script>
     async function sendPLAI(amount) {
+        if (isPremiumSubActive() && !savedGameData.player.premiumSub.freeTicketsClaimed) {
+    savedGameData.player.tickets += 3; // buying a subscription gives 3 free spin tickets
+    savedGameData.player.premiumSub.freeTicketsClaimed = true;
+    showRewardNotification("🎟️ 3 free spin tickets added!");
+    saveAllData();
+        }
 
         if (!window.ethereum || !savedGameData.player.wallet) {
             showRewardNotification("❌ Connect your wallet first.");
