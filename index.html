@@ -2299,23 +2299,20 @@ function openGoldRush() {
 
    function renderGoldRush() {
     if (!savedGameData.player.goldRush) {
-    savedGameData.player.goldRush = {
-        deposited: 0,
-        lastDraw: 0,
-        result: null,
-        hasClaimed: false,
-        goldRushResultSeen: 0,
-    };
+        savedGameData.player.goldRush = {
+            deposited: 0,
+            lastDraw: 0,
+            result: null,
+            hasClaimed: false,
+            goldRushResultSeen: 0,
+        };
     }
     const deposited = savedGameData.player.goldRush.deposited || 0;
-    const maxDeposit = 10000; // max deposit is 10000 gold
+    const maxDeposit = 10000;
     const canDeposit = isGoldRushActive();
-
-    // Calculate progress and win chance
     const percent = Math.min(100, (deposited / maxDeposit) * 100);
     const winChance = Math.min(90, (deposited / maxDeposit) * 90);
 
-    // Rewards and odds (should match your draw logic)
     const rewards = [
         { amount: 1, chance: 35 },
         { amount: 2, chance: 25 },
@@ -2327,32 +2324,45 @@ function openGoldRush() {
     ];
 
     let html = `
-        <h3>🌟 Gold Rush Event</h3>
-        <p>Deposit your gold for a chance to win a PLAI mystery box!<br>
-        The more you deposit, the higher your chance to win.</p>
-        <p><b>Your deposited gold this round:</b> ${deposited} / ${maxDeposit}</p>
-        <div style="background:#333; border-radius:8px; height:20px; width:100%; margin:10px 0; overflow:hidden;">
-            <div style="background:#FFD700; width:${percent}%; height:100%;"></div>
+        <div class="currency-display" style="justify-content: flex-start; margin-bottom: 18px;">
+            <div class="coin-icon"></div>
+            <span style="font-size:1.1em;">Your Gold: <b>${savedGameData.player.gold}</b></span>
         </div>
-        <div style="margin:10px 0; color:#FFD700; font-weight:bold;">
-            Current Win Chance: ${winChance.toFixed(1)}%
+        <div style="background:rgba(0,0,0,0.18); border-radius:16px; padding:18px 16px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <p style="margin-bottom:10px;">Deposit your gold for a chance to win a PLAI mystery box!<br>
+            The more you deposit, the higher your chance to win.</p>
+            <div style="font-weight:bold; color:#FFD700; margin-bottom:8px;">
+                Deposited: ${deposited} / ${maxDeposit}
+            </div>
+            <div style="background:#333; border-radius:8px; height:22px; width:100%; margin-bottom:10px; overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#FFD700,#FFA500); width:${percent}%; height:100%;"></div>
+            </div>
+            <div style="margin-bottom:0; color:#FFD700; font-weight:bold;">
+                Current Win Chance: ${winChance.toFixed(1)}%
+            </div>
         </div>
-        <div style="margin:10px 0;">
-            <b>Possible Rewards if you win:</b>
-            <table style="width:100%; margin-top:5px; color:white; background:rgba(0,0,0,0.15); border-radius:8px;">
+        <div style="background:rgba(0,0,0,0.13); border-radius:14px; padding:14px 10px; margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+            <b style="color:#FFD700;">Possible Rewards if you win:</b>
+            <table style="width:100%; margin-top:8px; color:white; background:rgba(255,255,255,0.04); border-radius:8px; border-collapse:separate; border-spacing:0;">
                 <tr>
-                    <th style="padding:4px 0;">PLAI</th>
-                    <th style="padding:4px 0;">Chance</th>
+                    <th style="padding:6px 0; color:#FFD700; font-size:1.08em;">PLAI</th>
+                    <th style="padding:6px 0; color:#FFD700; font-size:1.08em;">Chance</th>
                 </tr>
                 ${rewards.map(r => `
                     <tr>
-                        <td style="padding:2px 0; text-align:center;">${r.amount}</td>
-                        <td style="padding:2px 0; text-align:center;">${r.chance}%</td>
+                        <td style="padding:4px 0; text-align:center; font-weight:bold;">${r.amount}</td>
+                        <td style="padding:4px 0; text-align:center;">${r.chance}%</td>
                     </tr>
                 `).join('')}
             </table>
-            <div style="font-size:0.95em; color:#FFD700; margin-top:4px;">
+            <div style="font-size:0.97em; color:#FFD700; margin-top:7px;">
                 (If you win, you get one of these at random)
+            </div>
+            <div style="font-size:0.93em; color:#FF8C00; margin-top:7px;">
+                <b>Note:</b> At full deposit (10,000 gold), your maximum win chance is <b>90%</b>.
+            </div>
+            <div style="font-size:0.93em; color:#FF4444; margin-top:7px;">
+            <b>Important:</b> If there is not enough $PLAI in the prize pool, your gold will be fully refunded instead of receiving PLAI.
             </div>
         </div>
     `;
