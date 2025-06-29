@@ -1515,7 +1515,11 @@ const DEFAULT_SAVED_GAME_DATA = {
         },
         vaultXP: 0,
         vaultTicketsClaimed: 0
-    }
+    },
+    activeBoosters: {
+        xp: { multiplier: 1, expires: 0 },
+        coins: { multiplier: 1, expires: 0 }
+    },
 
 };
 /*
@@ -1870,13 +1874,12 @@ const TASK_POOL = [
                 savedGameData.tasks.daily= generateTasks(true);
                 savedGameData.tasks.dailyReset = getNextDailyResetUTC();
                 changed = true;
-                saveAllData();
-            }
+             }
             if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
                 savedGameData.tasks.weekly = generateTasks(false);
                 savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
                 changed = true;
-                saveAllData();
+
             }
         }
 
