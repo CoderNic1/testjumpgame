@@ -966,7 +966,7 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
-        <button onclick="openEventsMenu()">🎉 Events</button> <!-- TODO: change to openEventsMenu() -->
+        <!--<button onclick="openEventsMenu()">🎉 Events</button>  TODO: change to openEventsMenu() -->
 	</div>
 
     <p id="welcomeUser" style="font-size:1.1em; color:#FFD700; margin-top:10px; margin-bottom:0;"></p>
@@ -1175,7 +1175,7 @@
                 </div>
             </div>
 
-            <div class="shop-section" id="premiumSubSection" style="display:block;"> // change display none to block
+            <div class="shop-section" id="premiumSubSection" style="display:none;"> // change display none to block
                 <h2>🌟 Premium Subscription</h2>
                 <div class="shop-item">
                     <div class="shop-item-info">
@@ -1183,10 +1183,10 @@
                         <div class="shop-item-desc">
                             <ul style="text-align:left; margin:0 0 0 1em; color:#FFD700;">
                                 <li>+10% XP from tasks</li>
-                                <li>3 free spin tickets (once per sub)</li>
-                                <li>Spikes only -15s instead of -20s</li>
+                                <li>3 free spin tickets (per buy)</li>
+                                <li>Spikes only -15s</li>
                                 <li>Task reroll price -20%</li>
-                                <li>+1 extra daily task slot (4 total)</li>
+                                <li>+1 daily task slot (4 total)</li>
                             </ul>
                         </div>
                     </div>
@@ -1195,7 +1195,6 @@
                         99.99
                     </div>
                     <button id="buyPremiumSubBtn" onclick="buyPremiumSub()" class="menu-btn">Buy</button>
-                    <span id="premiumSubStatus" style="margin-left:10px; color:#00FFAA;"></span>
                 </div>
             </div>
                        
@@ -1281,6 +1280,9 @@
         </tbody>
     </table>
 </div>
+    <div style="color:#FF4444; font-size:15px; font-weight:bold; margin:10px 0; text-align:center;">
+    [TEST PHASE] Leaderboard data is currently saved locally and may not function correctly. Rewards will NOT be paid out as this is a test version.
+    </div> 
        <div id="leaderboardDisclaimer" style="color:#FFD700; font-size:13px; margin-top:10px; text-align:center;"></div>
        <button onclick="goHome()" class="back-button">🏠 Back to Home</button>
        <p> The top 10 will win $PLAI tokens at the end of the week. </p>
@@ -1432,7 +1434,7 @@ const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
   "function transfer(address to, uint256 amount) returns (bool)"
 ];
-
+let leaderboardTimerInterval = null;
 async function updatePLAIWalletBalance() {
     if (!window.ethereum || !savedGameData.player.wallet) return;
 
@@ -1468,15 +1470,18 @@ const DEFAULT_SAVED_GAME_DATA = {
             magnetPowerUnlocked: false,
             giftSpeedLevel: 0,
             giftSpeedMaxLevel: 5,
-            jumpMaxLevel: 10,
-            premiumSub: {
-                active: false,
-                expires: 0,
-                freeTicketsClaimed: false
-            }
+            jumpMaxLevel: 10,            
         },
+        premiumSub: {
+            active: false,
+            expires: 0,
+            freeTicketsClaimed: false
+            },
         userItems: {
-            unlocked: ['skin_red', 'bg_default', 'fx_none'],
+            unlocked: [
+                'skin_red', 'bg_default', 'fx_none',
+                'skin_buildingcat', 'skin_zombie', 'skin_chocolate', 'skin_bear'
+            ],
             selected: { skin: 'skin_red', background: 'bg_default', effect: 'fx_none' }
         },
         goldRush: {
@@ -1515,8 +1520,13 @@ const DEFAULT_SAVED_GAME_DATA = {
             premium: []
         },
         vaultXP: 0,
-        vaultTicketsClaimed: 0
-    }
+        vaultTicketsClaimed: 0,
+        lastResetMonth: null
+    },
+    activeBoosters: {
+        xp: { multiplier: 1, expires: 0 },
+        coins: { multiplier: 1, expires: 0 }
+    },
 
 };
 /*
@@ -1871,13 +1881,13 @@ const TASK_POOL = [
                 savedGameData.tasks.daily= generateTasks(true);
                 savedGameData.tasks.dailyReset = getNextDailyResetUTC();
                 changed = true;
-            }
-            if (!savedGameData.global.previousLeaderboard || now > savedGameData.global.previousLeaderboard) {
+             }
+            if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
                 savedGameData.tasks.weekly = generateTasks(false);
-                savedGameData.global.previousLeaderboard = getNextWeeklyResetUTC();
+                savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
                 changed = true;
-            }
 
+            }
         }
 
         function getNextLeaderboardResetUTC() {
@@ -1925,20 +1935,79 @@ const TASK_POOL = [
             } else {
                 savedGameData.global.leaderboard.forEach(entry => prevWeek.push({ name: entry.name, score: entry.score, reward: 0 }));
             }
-            // Save previous week leaderboard
-            savedGameData.global.previousLeaderboard = prevWeek;
-            // Reset leaderboard
-            savedGameData.global.leaderboard = [];
-            // Set next reset
-            savedGameData.global.previousLeaderboardReset = getNextLeaderboardResetUTC();
-            saveLeaderboardReset(resetTime);
+
+            // At reset time:
+        savedGameData.global.previousLeaderboard = savedGameData.global.leaderboard.slice(); // Save the array
+        savedGameData.global.leaderboard = []; // Clear for new week
+        const newResetTime = getNextLeaderboardResetUTC();
+        savedGameData.global.leaderboardReset = newResetTime;
+        saveLeaderboardReset(newResetTime);
+        saveAllData();
+
         }
     }
 
-        // Call this once at game start:
+    function repairCorruptedGameData() {
+    let changed = false;
 
+    // 1. Fix leaderboard arrays
+    if (!Array.isArray(savedGameData.global.leaderboard)) {
+        savedGameData.global.leaderboard = [];
+        changed = true;
+    }
+    if (!Array.isArray(savedGameData.global.previousLeaderboard)) {
+        savedGameData.global.previousLeaderboard = [];
+        changed = true;
+    }
+
+    // 2. Fix leaderboard reset timestamp
+    if (typeof savedGameData.global.leaderboardReset !== 'number' || isNaN(savedGameData.global.leaderboardReset)) {
+        // Set to next Sunday UTC
+        savedGameData.global.leaderboardReset = getNextLeaderboardResetUTC ? getNextLeaderboardResetUTC() : Date.now() + 7*24*60*60*1000;
+        changed = true;
+    }
+
+    // 3. Fix tasks arrays
+    if (!Array.isArray(savedGameData.tasks.daily)) {
+        savedGameData.tasks.daily = [];
+        changed = true;
+    }
+    if (!Array.isArray(savedGameData.tasks.weekly)) {
+        savedGameData.tasks.weekly = [];
+        changed = true;
+    }
+
+    // 4. Fix task reset timestamps
+    if (typeof savedGameData.tasks.dailyReset !== 'number' || isNaN(savedGameData.tasks.dailyReset)) {
+        savedGameData.tasks.dailyReset = getNextDailyResetUTC ? getNextDailyResetUTC() : Date.now() + 24*60*60*1000;
+        changed = true;
+    }
+    if (typeof savedGameData.tasks.weeklyReset !== 'number' || isNaN(savedGameData.tasks.weeklyReset)) {
+        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC ? getNextWeeklyResetUTC() : Date.now() + 7*24*60*60*1000;
+        changed = true;
+    }
+
+    // 5. Save if anything was fixed
+    if (changed) {
+        saveAllData && saveAllData();
+        console.log("Corrupted game data repaired.");
+    }
+}
+
+        // Call this once at game start:
+        repairCorruptedGameData();
         resetTasksIfNeeded();
         resetLeaderboardIfNeeded()
+        const imageCache = {};
+        // Preload images   
+    function preloadImage(src) {
+    if (!imageCache[src]) {
+        const img = new Image();
+        img.src = src;
+        imageCache[src] = img;
+    }
+    return imageCache[src];
+    }
 
         
         // Power-ups
@@ -1986,9 +2055,9 @@ const TASK_POOL = [
             coins = [];
             clocks = [];
             magnets = [];
-	    spikes = [];
-	    gifts = [];
-	    spikeHitMessage = null;
+	        spikes = [];
+	        gifts = [];
+	        spikeHitMessage = null;
             magnetActive = false;
             magnetTimeLeft = 0;
             magnetStatus.style.display = 'none';
@@ -2151,9 +2220,8 @@ const TASK_POOL = [
             document.getElementById('leaderboardResetTimer').textContent = resetText;
         }
 
-        let leaderboardTimerInterval = null;
 
-// ... existing code ...
+
 function showLeaderboardPage(page) {
             const leaderboardBody = document.getElementById('leaderboardBody');
             document.getElementById('currentLbTab').style.background = page === 'current' ? '#FFD700' : '';
@@ -2215,7 +2283,7 @@ function showLeaderboardPage(page) {
             }
         }
 
-
+ 
         function showLeaderboard() {
            gameState = STATES.LEADERBOARD;
            hideAllMenus();
@@ -2287,15 +2355,18 @@ function updateVaultScreen() {
 }
 
 function openGoldRush() {
-       if (!isGoldRushActive()) {
-           showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
-           return;
-       }
-       else {
-       hideAllMenus();
-       document.getElementById('goldRushMenu').style.display = 'block';
-       renderGoldRush();}
+   if (!isGoldRushActive()) {
+       showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
+       setTimeout(() => {
+           openEventsMenu();
+       }, 1000);
+       return;
    }
+   // Only hide menus and show the event if active
+   hideAllMenus();
+   document.getElementById('goldRushMenu').style.display = 'block';
+   renderGoldRush();
+}
 
    function renderGoldRush() {
     if (!savedGameData.player.goldRush) {
@@ -2451,15 +2522,26 @@ function openGoldRush() {
 	    document.getElementById('giftSpeedButton').disabled = savedGameData.player.upgrades.giftSpeedLevel >= savedGameData.player.upgrades.giftSpeedMaxLevel || (savedGameData.player.plai+1) < giftSpeedCost;
 	    document.getElementById('giftSpeedButton').textContent = savedGameData.player.upgrades.giftSpeedLevel >= (savedGameData.player.upgrades.giftSpeedMaxLevel) ? 'Owned' : 'Buy';
             
-        const subStatus = document.getElementById('premiumSubStatus');
-    if (isPremiumSubActive()) {
-        const daysLeft = Math.ceil((savedGameData.player.premiumSub.expires - Date.now()) / (24*60*60*1000));
-        subStatus.textContent = `Active (${daysLeft}d left)`;
-        document.getElementById('buyPremiumSubBtn').disabled = true;
+        const subBtn = document.getElementById('buyPremiumSubBtn');
+if (isPremiumSubActive()) {
+    const msLeft = savedGameData.player.premiumSub.expires - Date.now();
+    const days = Math.floor(msLeft / (24*60*60*1000));
+    const hours = Math.floor((msLeft % (24*60*60*1000)) / (60*60*1000));
+    const minutes = Math.floor((msLeft % (60*60*1000)) / (60*1000));
+    let timeLeft = '';
+    if (days > 0) {
+        timeLeft = `${days}d ${hours}h left`;
+    } else if (hours > 0) {
+        timeLeft = `${hours}h ${minutes}m left`;
     } else {
-        subStatus.textContent = '';
-        document.getElementById('buyPremiumSubBtn').disabled = false;
+        timeLeft = `${minutes}m left`;
     }
+    subBtn.textContent = `Active (${timeLeft})`;
+    subBtn.disabled = true;
+} else {
+    subBtn.textContent = 'Buy';
+    subBtn.disabled = false;
+}
         }
         
         function buyUpgrade(type) {
@@ -2471,7 +2553,7 @@ function openGoldRush() {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.jumpLevel++;
-                    updateAllTasksProgress("spend_gold", amountSpent);
+                    updateAllTasksProgress("spend_gold", cost);
                     updateShopScreen();
                 }
             } else if (type === 'time') {
@@ -2479,7 +2561,7 @@ function openGoldRush() {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.timeLevel++;
-                    updateAllTasksProgress("spend_gold", amountSpent);
+                    updateAllTasksProgress("spend_gold", cost);
                     updateShopScreen();
                 }
             }
@@ -2527,6 +2609,12 @@ async function buyPremiumSub() {
         savedGameData.player.premiumSub.expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
         savedGameData.player.premiumSub.freeTicketsClaimed = false;
         showRewardNotification("🌟 Premium Subscription activated for 7 days!");
+        if (isPremiumSubActive() && !savedGameData.player.premiumSub.freeTicketsClaimed) {
+        savedGameData.player.tickets += 3; // buying a subscription gives 3 free spin tickets
+        savedGameData.player.premiumSub.freeTicketsClaimed = true;
+        showRewardNotification("🎟️ 3 free spin tickets added!");
+        saveAllData();
+        }
         updateShopScreen();
         saveAllData();
     }
@@ -2939,8 +3027,20 @@ async function buyPremiumSub() {
             if (gameState === STATES.PLAYING) {
                 // Draw player
                 const selectedSkin = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.skin);
-                ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B'; // Fallback color
-                ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            if (selectedSkin && selectedSkin.image) {
+                const img = preloadImage(selectedSkin.image);
+            if (img.complete) {
+                ctx.drawImage(img, player.x, player.y, player.width, player.height);
+            } else {
+            // Optionally, draw a placeholder or fallback color while loading
+            ctx.fillStyle = selectedSkin.color || '#FF6B6B';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+            } else {
+            ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
                 
                 // Player face
                 ctx.fillStyle = 'white';
@@ -3240,11 +3340,18 @@ if (rewardMessage) {
 
         function applySelectedBackground() {
             const selectedBg = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.background);
-            if (selectedBg && selectedBg.gradient) {
-                canvas.style.background = selectedBg.gradient;
-            } else {
-                // Fallback to default
-                canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
+            if (selectedBg) {
+                if (selectedBg.image) {
+                    // Use image as background
+                    canvas.style.background = `url('${selectedBg.image}') center center / cover no-repeat`;
+                } else if (selectedBg.gradient) {
+                    canvas.style.background = selectedBg.gradient;
+                } else if (selectedBg.color) {
+                    canvas.style.background = selectedBg.color;
+                } else {
+                    // Fallback
+                    canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
+                }
             }
         }
 
@@ -3289,7 +3396,7 @@ if (rewardMessage) {
             document.getElementById('weeklyTab').style.background = !showingDailyTasks ? '#FFD700' : '';
 
             // Reset timer
-            let resetTime = showingDailyTasks ? savedGameData.tasks.dailyReset : savedGameData.global.previousLeaderboard;
+            let resetTime = showingDailyTasks ? savedGameData.tasks.dailyReset : savedGameData.tasks.weeklyReset;
             let timeLeft = Math.max(0, Math.floor((resetTime - now) / 1000));
             let hours = Math.floor(timeLeft / 3600);
             let mins = Math.floor((timeLeft % 3600) / 60);
@@ -3733,7 +3840,29 @@ if (rewardMessage) {
         document.getElementById('coin-balance').textContent = savedGameData.player.gold.toLocaleString();
         document.getElementById('plai-balance').textContent = savedGameData.player.plai.toLocaleString(); // No decimals
     }
+
+    function resetJumpPass() {
+    savedGameData.pass.currentLevel = 1;
+    savedGameData.pass.currentXP = 0;
+    savedGameData.pass.xpToNext = getXPForLevel(1);
+    savedGameData.pass.premiumUnlocked = false;
+    savedGameData.pass.claimedRewards = { basic: [], premium: [] };
+    savedGameData.pass.vaultXP = 0;
+    savedGameData.pass.vaultTicketsClaimed = 0;
+    // Store the current month and year as last reset
+    const now = new Date();
+    savedGameData.pass.lastResetMonth = now.getUTCFullYear() + '-' + now.getUTCMonth();
+    saveAllData();
+    // Show reset notification
+    showRewardNotification("🎉 New season! Your Jump Pass has been reset for the new month.");
+}
+
     function openJumpPass() {
+        const now = new Date();
+        const currentMonthKey = now.getUTCFullYear() + '-' + now.getUTCMonth();
+        if (savedGameData.pass.lastResetMonth !== currentMonthKey) {
+        resetJumpPass();
+        }
         updatePassStats();
         hideAllMenus();
         document.getElementById('jumpPassMenu').style.display = 'block';
@@ -3857,6 +3986,10 @@ function claimVaultTickets() {
       { id: 'skin_cyan', type: 'skin', name: 'Aqua Cyan', color: '#4ECDC4', source: 'shop', price: 250 },
       { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
       { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
+      { id: 'skin_city', type: 'skin', name: 'city building', image: 'art/city.png', source: 'test', price: 0 },
+      { id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'art/zombie.png', source: 'test', price: 0 },
+      { id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'art/chocolate.png', source: 'test', price: 0 },
+      { id: 'skin_bear', type: 'skin', name: 'bear', image: 'art/bear.png', source: 'test', price: 0 },
 
       // Backgrounds
       { id: 'bg_default', type: 'background', name: 'Default Sky', gradient: 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)', source: 'default' },
@@ -3907,7 +4040,11 @@ function claimVaultTickets() {
                 const div = document.createElement('div');
                 div.style.width = '80px';
                 div.style.height = '80px';
+                if (item.image) {
+                div.style.background = `url('${item.image}') center center / cover no-repeat`;
+                } else {
                 div.style.background = item.gradient || item.color || '#ccc';
+                }
                 div.style.borderRadius = '10px';
                 div.style.border = '2px solid #555';
                 div.style.display = 'flex';
@@ -4271,12 +4408,6 @@ function claimVaultTickets() {
 
     <script>
     async function sendPLAI(amount) {
-        if (isPremiumSubActive() && !savedGameData.player.premiumSub.freeTicketsClaimed) {
-    savedGameData.player.tickets += 3; // buying a subscription gives 3 free spin tickets
-    savedGameData.player.premiumSub.freeTicketsClaimed = true;
-    showRewardNotification("🎟️ 3 free spin tickets added!");
-    saveAllData();
-        }
 
         if (!window.ethereum || !savedGameData.player.wallet) {
             showRewardNotification("❌ Connect your wallet first.");
@@ -4436,6 +4567,7 @@ function depositGoldRush() {
     }
     savedGameData.player.gold -= amount;
     savedGameData.player.goldRush.deposited += amount;
+    updateAllTasksProgress("spend_gold", amount);
     saveAllData();
     renderGoldRush();
     showRewardNotification(`Deposited ${amount} gold!`);
@@ -4559,6 +4691,8 @@ function showGoldRushResultOnLogin() {
     // Not enough in pool
     return false;
 }
+
+
 
 if (window.ethereum) {
         window.ethereum.on('chainChanged', (chainId) => {
