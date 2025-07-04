@@ -1478,7 +1478,10 @@ const DEFAULT_SAVED_GAME_DATA = {
             freeTicketsClaimed: false
             },
         userItems: {
-            unlocked: ['skin_red', 'bg_default', 'fx_none'],
+            unlocked: [
+                'skin_red', 'bg_default', 'fx_none',
+                'skin_buildingcat', 'skin_zombie', 'skin_chocolate', 'skin_bear'
+            ],
             selected: { skin: 'skin_red', background: 'bg_default', effect: 'fx_none' }
         },
         goldRush: {
@@ -1995,6 +1998,16 @@ const TASK_POOL = [
         repairCorruptedGameData();
         resetTasksIfNeeded();
         resetLeaderboardIfNeeded()
+        const imageCache = {};
+        // Preload images   
+    function preloadImage(src) {
+    if (!imageCache[src]) {
+        const img = new Image();
+        img.src = src;
+        imageCache[src] = img;
+    }
+    return imageCache[src];
+    }
 
         
         // Power-ups
@@ -2573,7 +2586,7 @@ if (isPremiumSubActive()) {
         }
     } else if (type === 'giftSpeed' && savedGameData.player.upgrades.giftSpeedLevel < savedGameData.player.upgrades.giftSpeedMaxLevel) {
     const cost = Math.floor(500 * Math.pow(1.5, savedGameData.player.upgrades.giftSpeedLevel));
-    if (awaitsendPLAI(cost)) {
+    if (await sendPLAI(cost)) {
         savedGameData.player.upgrades.giftSpeedLevel++;
         updateShopScreen();
     		}
@@ -3014,8 +3027,20 @@ async function buyPremiumSub() {
             if (gameState === STATES.PLAYING) {
                 // Draw player
                 const selectedSkin = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.skin);
-                ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B'; // Fallback color
-                ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            if (selectedSkin && selectedSkin.image) {
+                const img = preloadImage(selectedSkin.image);
+            if (img.complete) {
+                ctx.drawImage(img, player.x, player.y, player.width, player.height);
+            } else {
+            // Optionally, draw a placeholder or fallback color while loading
+            ctx.fillStyle = selectedSkin.color || '#FF6B6B';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+            } else {
+            ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
                 
                 // Player face
                 ctx.fillStyle = 'white';
@@ -3315,11 +3340,18 @@ if (rewardMessage) {
 
         function applySelectedBackground() {
             const selectedBg = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.background);
-            if (selectedBg && selectedBg.gradient) {
-                canvas.style.background = selectedBg.gradient;
-            } else {
-                // Fallback to default
-                canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
+            if (selectedBg) {
+                if (selectedBg.image) {
+                    // Use image as background
+                    canvas.style.background = `url('${selectedBg.image}') center center / cover no-repeat`;
+                } else if (selectedBg.gradient) {
+                    canvas.style.background = selectedBg.gradient;
+                } else if (selectedBg.color) {
+                    canvas.style.background = selectedBg.color;
+                } else {
+                    // Fallback
+                    canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
+                }
             }
         }
 
@@ -3954,6 +3986,10 @@ function claimVaultTickets() {
       { id: 'skin_cyan', type: 'skin', name: 'Aqua Cyan', color: '#4ECDC4', source: 'shop', price: 250 },
       { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
       { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
+      //{ id: 'skin_city', type: 'skin', name: 'city building', image: 'art/city.png', source: 'test', price: 0 },
+      //{ id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'art/zombie.png', source: 'test', price: 0 },
+      //{ id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'art/chocolate.png', source: 'test', price: 0 },
+      //{ id: 'skin_bear', type: 'skin', name: 'bear', image: 'art/bear.png', source: 'test', price: 0 },
 
       // Backgrounds
       { id: 'bg_default', type: 'background', name: 'Default Sky', gradient: 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)', source: 'default' },
@@ -4004,7 +4040,11 @@ function claimVaultTickets() {
                 const div = document.createElement('div');
                 div.style.width = '80px';
                 div.style.height = '80px';
+                if (item.image) {
+                div.style.background = `url('${item.image}') center center / cover no-repeat`;
+                } else {
                 div.style.background = item.gradient || item.color || '#ccc';
+                }
                 div.style.borderRadius = '10px';
                 div.style.border = '2px solid #555';
                 div.style.display = 'flex';
