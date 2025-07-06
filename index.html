@@ -966,7 +966,7 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
-        <button onclick="openEventsMenu()">🎉 Events</button>  //TODO: change to openEventsMenu() 
+        <!--<button onclick="openEventsMenu()">🎉 Events</button>  TODO: change to openEventsMenu() -->
 	</div>
 
     <p id="welcomeUser" style="font-size:1.1em; color:#FFD700; margin-top:10px; margin-bottom:0;"></p>
@@ -1047,7 +1047,7 @@
                     </div>
                 </div>
                 <!-- TODO: change the display none to block -->
-                <div class="vault-section" id="vaultSection" style="margin-top: 30px;display:block; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
+                <div class="vault-section" id="vaultSection" style="margin-top: 30px;display:none; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
                     <h2 style="color:#FFD700;">🎁 Vault Bonus</h2>
                     <p>For every <b>50 XP</b> you collect after reaching the final pass level as premium member, you earn <b>1 extra spin ticket</b>!</p>
                     <p id="vaultTicketsEarned" style="font-size:1.2em; color:#00FFAA;"></p>
@@ -1175,7 +1175,7 @@
                 </div>
             </div>
 
-            <div class="shop-section" id="premiumSubSection" style="display:block;"> // change display none to block
+            <div class="shop-section" id="premiumSubSection" style="display:none;"> // change display none to block
                 <h2>🌟 Premium Subscription</h2>
                 <div class="shop-item">
                     <div class="shop-item-info">
@@ -3986,10 +3986,10 @@ function claimVaultTickets() {
       { id: 'skin_cyan', type: 'skin', name: 'Aqua Cyan', color: '#4ECDC4', source: 'shop', price: 250 },
       { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
       { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
-      //{ id: 'skin_city', type: 'skin', name: 'city building', image: 'art/city.png', source: 'test', price: 0 },
-      //{ id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'art/zombie.png', source: 'test', price: 0 },
-      //{ id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'art/chocolate.png', source: 'test', price: 0 },
-      //{ id: 'skin_bear', type: 'skin', name: 'bear', image: 'art/bear.png', source: 'test', price: 0 },
+      { id: 'skin_city', type: 'skin', name: 'city building', image: 'images/city.png', source: 'test', price: 0 },
+      { id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'images/zombie.png', source: 'test', price: 0 },
+      { id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'images/chocolate.png', source: 'test', price: 0 },
+      { id: 'skin_bear', type: 'skin', name: 'bear', image: 'images/bear.png', source: 'test', price: 0 },
 
       // Backgrounds
       { id: 'bg_default', type: 'background', name: 'Default Sky', gradient: 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)', source: 'default' },
