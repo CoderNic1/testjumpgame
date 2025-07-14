@@ -1858,13 +1858,17 @@ const TASK_POOL = [
             now.setUTCHours(0,0,0,0);
             return now.getTime() + 24*60*60*1000; // next midnight UTC
         }
+        
         function getNextWeeklyResetUTC() {
-            const now = new Date();
-            // Set to next Sunday 00:00 UTC
-            const day = now.getUTCDay();
-            const daysUntilSunday = (7 - day) % 7;
-            now.setUTCHours(0,0,0,0);
-            return now.getTime() + daysUntilSunday*24*60*60*1000;
+        const now = new Date();
+        now.setUTCHours(0,0,0,0); // Today at 00:00 UTC
+        let day = now.getUTCDay();
+        let daysUntilNextSunday = (7 - day) % 7;
+        if (daysUntilNextSunday === 0) {
+            // If today is Sunday, set to next Sunday
+            daysUntilNextSunday = 7;
+        }
+        return now.getTime() + daysUntilNextSunday * 24 * 60 * 60 * 1000;
         }
 
         function getRandomTask(isDaily, excludeTypes=[]) {
