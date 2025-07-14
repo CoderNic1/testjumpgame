@@ -4308,7 +4308,7 @@ function claimVaultTickets() {
                        params: [{ chainId: '0x2105' }]
                    });
                    showRewardNotification("✅ Switched to Base network!");
-                   //showGoldRushResultOnLogin();
+                   showGoldRushResultOnLogin();
                } catch (switchError) {
                    showRewardNotification("❌ Please switch to Base network in MetaMask.");
                    return;
