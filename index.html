@@ -966,7 +966,6 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
-          <button onclick="openEventsMenu()">🎉 Events</button>
         <!--<button onclick="openEventsMenu()">🎉 Events</button>  TODO: change to openEventsMenu() -->
 	</div>
 
@@ -1048,7 +1047,7 @@
                     </div>
                 </div>
                 <!-- TODO: change the display none to block -->
-                <div class="vault-section" id="vaultSection" style="margin-top: 30px;display:block; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
+                <div class="vault-section" id="vaultSection" style="margin-top: 30px;display:none; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
                     <h2 style="color:#FFD700;">🎁 Vault Bonus</h2>
                     <p>For every <b>50 XP</b> you collect after reaching the final pass level as premium member, you earn <b>1 extra spin ticket</b>!</p>
                     <p id="vaultTicketsEarned" style="font-size:1.2em; color:#00FFAA;"></p>
@@ -1176,7 +1175,7 @@
                 </div>
             </div>
 
-            <div class="shop-section" id="premiumSubSection" style="display:block;"> // change display none to block
+            <div class="shop-section" id="premiumSubSection" style="display:none;"> // change display none to block
                 <h2>🌟 Premium Subscription</h2>
                 <div class="shop-item">
                     <div class="shop-item-info">
@@ -1539,7 +1538,7 @@ const DEFAULT_SAVED_GAME_DATA = {
       { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
       { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
       { id: 'skin_city', type: 'skin', name: 'city building', image: 'images/skin_city.png', source: 'test', price: 0 },
-      { id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'images/skin_zombie.png', source: 'test', price: 0 },
+      { id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'images/skin_zombie.png', source: 'shop', price: 1 },
       { id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'images/skin_chocolate.png', source: 'test', price: 0 },
       { id: 'skin_bear', type: 'skin', name: 'bear', image: 'images/skin_bear.png', source: 'test', price: 0 },
 
@@ -1858,7 +1857,6 @@ const TASK_POOL = [
             now.setUTCHours(0,0,0,0);
             return now.getTime() + 24*60*60*1000; // next midnight UTC
         }
-        
         function getNextWeeklyResetUTC() {
         const now = new Date();
         now.setUTCHours(0,0,0,0); // Today at 00:00 UTC
@@ -1906,31 +1904,41 @@ const TASK_POOL = [
 
 
         function resetTasksIfNeeded() {
-            const now = Date.now();
-            let changed = false;
-                // Loop catch: if this function is called too often, force a hard reset
-            weeklyResetLoopCount++;
-            if (weeklyResetLoopCount > 10) {
-            console.warn("Weekly task reset loop detected! Forcing hard reset.");
-            savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-            savedGameData.tasks.weekly = generateTasks(false);
-            saveAllData();
-            weeklyResetLoopCount = 0;
-            return;
-            }
+    const now = Date.now();
+    let changed = false;
 
-            if (!savedGameData.tasks.dailyReset || now > savedGameData.tasks.dailyReset) {
-                savedGameData.tasks.daily= generateTasks(true);
-                savedGameData.tasks.dailyReset = getNextDailyResetUTC();
-                changed = true;
-             }
-            if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
-                savedGameData.tasks.weekly = generateTasks(false);
-                savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-                changed = true;
+    // Only increment if a reset is actually needed
+    if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
+        weeklyResetLoopCount++;
+    } else {
+        weeklyResetLoopCount = 0; // Reset the loop count if no reset is needed
+    }
 
-            }
-        }
+    if (weeklyResetLoopCount > 10) {
+        console.warn("Weekly task reset loop detected! Forcing hard reset.");
+        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
+        savedGameData.tasks.weekly = generateTasks(false);
+        saveAllData();
+        weeklyResetLoopCount = 0;
+        return;
+    }
+
+    if (!savedGameData.tasks.dailyReset || now > savedGameData.tasks.dailyReset) {
+        savedGameData.tasks.daily = generateTasks(true);
+        savedGameData.tasks.dailyReset = getNextDailyResetUTC();
+        changed = true;
+    }
+    if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
+        savedGameData.tasks.weekly = generateTasks(false);
+        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
+        changed = true;
+        weeklyResetLoopCount = 0; // Reset the loop count after a successful weekly reset
+    }
+
+    if (changed) {
+        saveAllData();
+    }
+}
 
         function getNextLeaderboardResetUTC() {
         const now = new Date();
@@ -2029,8 +2037,8 @@ const TASK_POOL = [
         changed = true;
     }
 
-    // Fix weekly tasks array
-    if (!Array.isArray(savedGameData.tasks.weekly)) {
+        // Fix weekly tasks array
+        if (!Array.isArray(savedGameData.tasks.weekly)) {
         savedGameData.tasks.weekly = [];
         changed = true;
     }
@@ -2054,8 +2062,8 @@ const TASK_POOL = [
 }
 
         // Call this once at game start:
-        let weeklyResetLoopCount = 0;
         repairCorruptedGameData();
+        let weeklyResetLoopCount = 0;
         resetTasksIfNeeded();
         resetLeaderboardIfNeeded()
         const imageCache = {};
@@ -4342,6 +4350,7 @@ function claimVaultTickets() {
                        params: [{ chainId: '0x2105' }]
                    });
                    showRewardNotification("✅ Switched to Base network!");
+                   showGoldRushResultOnLogin();
                } catch (switchError) {
                    showRewardNotification("❌ Please switch to Base network in MetaMask.");
                    return;
@@ -4419,7 +4428,6 @@ function claimVaultTickets() {
     window.addEventListener('DOMContentLoaded', function() {
         if (savedGameData.player.wallet) {
             updatePLAIWalletBalance();
-            showGoldRushResultOnLogin();
         }
     });
     </script>
