@@ -3,18 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jump & Collect Game</title>
+    <title>Jump & Collect | Polygon</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Orbitron:wght@600;700;900&display=swap');
+
+        :root {
+            --pol-purple: #8247E5;
+            --pol-purple-light: #A67FEA;
+            --pol-purple-dark: #5A2BAB;
+            --pol-bg: #0D0D1A;
+            --pol-bg-card: rgba(22, 18, 48, 0.92);
+            --pol-gold: #FFD700;
+            --pol-gold-dim: #C8A800;
+            --pol-green: #00E88F;
+            --pol-red: #FF4B5C;
+            --pol-text: #E8E0FF;
+            --pol-text-dim: #9A8EC7;
+            --pol-border: rgba(130, 71, 229, 0.4);
+            --pol-glow: 0 0 20px rgba(130,71,229,0.35);
+            --radius: 18px;
+            --radius-sm: 10px;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            /* Removed the background gradient - no longer needed */
-            font-family: Arial, sans-serif;
+            font-family: 'Nunito', Arial, sans-serif;
             overflow: hidden;
             user-select: none;
             height: 100vh;
             width: 100vw;
-            /* Removed the flexbox properties that were commented out */
+            background: var(--pol-bg);
         }
         
         #gameCanvas {
@@ -36,51 +55,67 @@
         
         #ui {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-size: clamp(16px, 5vw, 24px);
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            top: 16px;
+            left: 16px;
+            color: #fff;
+            font-size: clamp(14px, 4vw, 20px);
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
             z-index: 10;
+            background: rgba(13,13,26,0.55);
+            border: 1px solid var(--pol-border);
+            border-radius: var(--radius-sm);
+            padding: 8px 14px;
+            backdrop-filter: blur(8px);
         }
         
         #timer {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-size: clamp(18px, 6vw, 28px);
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            top: 16px;
+            right: 16px;
+            color: #fff;
+            font-size: clamp(16px, 5vw, 24px);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+            background: rgba(13,13,26,0.55);
+            border: 1px solid var(--pol-border);
+            border-radius: var(--radius-sm);
+            padding: 8px 14px;
+            backdrop-filter: blur(8px);
         }
         
         #powerups {
             position: absolute;
             top: 80px;
-            right: 20px;
+            right: 16px;
             color: white;
-            font-size: 14px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 13px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
         
         .menu {
             position: absolute;
-            top: 15%;
-            left: 15%;
-            right: 15%;
-            bottom: 15%;
-            width: auto;
-            height: auto;
-            margin: 0;
-            border-radius: 30px;
-            color: white;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 88%;
+            max-width: 600px;
+            bottom: auto;
+            max-height: 82vh;
+            border-radius: var(--radius);
+            color: var(--pol-text);
             text-align: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.8);
-            border: 3px solid #FFD700;
-            max-height: 100%;
+            background: var(--pol-bg-card);
+            border: 1.5px solid var(--pol-border);
+            box-shadow: var(--pol-glow), 0 24px 80px rgba(0,0,0,0.7);
             overflow-y: auto;
+            padding: 28px 24px;
+            box-sizing: border-box;
+            backdrop-filter: blur(20px);
         }
         
         #tasksMenu.menu {
@@ -230,43 +265,51 @@
         }
         
         .menu h1 {
-            font-size: clamp(1.75rem, 4.5vw, 2.25rem); /* Min, Preferred, Max */
-            margin: 0 0 15px 0;
-            color: #FFD700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            margin: 0 0 14px 0;
+            color: var(--pol-purple-light);
+            letter-spacing: 1px;
         }
         
         .menu h2 {
-            font-size: clamp(1.4rem, 3.5vw, 1.75rem);
-            margin: 0 0 15px 0;
-            color: #FFD700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.1rem, 3.2vw, 1.5rem);
+            margin: 0 0 14px 0;
+            color: var(--pol-purple-light);
         }
         
         .menu p {
-            font-size: clamp(0.9rem, 2.5vw, 1rem);
+            font-size: clamp(0.88rem, 2.4vw, 1rem);
             margin: 8px 0;
+            color: var(--pol-text-dim);
         }
         
         .menu button, .menu-btn {
-            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
-            color: white;
+            background: linear-gradient(135deg, var(--pol-purple), var(--pol-purple-dark));
+            color: #fff;
             border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
+            padding: 11px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            margin: 8px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            margin: 7px;
+            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 14px rgba(130,71,229,0.3);
         }
         
         .menu button:hover, .menu-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 24px rgba(130,71,229,0.5);
+            background: linear-gradient(135deg, var(--pol-purple-light), var(--pol-purple));
         }
         
         .menu button:disabled {
-            background: #666;
+            background: #333;
+            color: #666;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
@@ -274,53 +317,57 @@
         
         /* Add hover style for .menu-btn (claim/reroll buttons) */
         .menu-btn:hover {
-            background: linear-gradient(45deg, #4CAF50, #FFD700);
-            color: #222;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, var(--pol-purple-light), var(--pol-purple));
         }
         
         .currency-display {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(15px, 6vw, 20px) !important;
-            margin: 15px 0;
+            font-size: clamp(14px, 5vw, 18px) !important;
+            margin: 12px 0;
+            gap: 6px;
+            color: var(--pol-text);
         }
         
         .coin-icon {
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle, #FFD700, #FFA500);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 35% 35%, #FFE566, #FFA500);
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 6px;
             display: inline-block;
             border: 2px solid #FF8C00;
+            box-shadow: 0 0 6px rgba(255,165,0,0.4);
+            flex-shrink: 0;
         }
         
         .plai-icon {
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle, #9D4EDD, #7209B7);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 35% 35%, #A67FEA, var(--pol-purple));
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 6px;
             display: inline-block;
-            border: 2px solid #5A0F8B;
+            border: 2px solid var(--pol-purple-dark);
+            box-shadow: 0 0 6px rgba(130,71,229,0.5);
+            flex-shrink: 0;
         }
         
         .stats {
-            background: rgba(0,0,0,0.3);
+            background: rgba(130,71,229,0.1);
             padding: 12px;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             margin: 12px 0;
+            border: 1px solid var(--pol-border);
         }
         
         .shop-section {
-            background: rgba(0,0,0,0.2);
+            background: rgba(130,71,229,0.08);
             padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border: 2px solid #444;
+            border-radius: var(--radius-sm);
+            margin: 14px 0;
+            border: 1.5px solid var(--pol-border);
         }
         
         .shop-item {
@@ -378,7 +425,7 @@
         }
         
         .back-button {
-            background: linear-gradient(45deg, #4CAF50, #66BB6A) !important;
+            background: linear-gradient(135deg, #1a6b3a, #2d9c57) !important;
         }
         
         /* Removed the duplicate body style that had the background gradient */
@@ -861,25 +908,30 @@
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 14px;
+                font-family: 'Nunito', sans-serif;
             }
         #leaderboardTable th, #leaderboardTable td {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(130,71,229,0.2);
             text-align: left;
         }
         #leaderboardTable th {
-            color: #FFD700;
+            color: var(--pol-purple-light);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 0.5px;
         }
         .prize-winner {
-            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+            background: linear-gradient(90deg, rgba(130,71,229,0.2), rgba(255,215,0,0.08));
             font-weight: bold;
         }
         
         .leaderboard-container {
-                margin: 15px 5%;
-                padding: 15px;
-                background: rgba(0,0,0,0.2);
-                border-radius: 15px;
+                margin: 12px 2%;
+                padding: 14px;
+                background: rgba(0,0,0,0.25);
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--pol-border);
             }
         
                 /* ADD THIS NEW CODE */
@@ -905,17 +957,17 @@
                 font-size: clamp(16px, 4vw, 18px);
             }
             .event-box {
-            background: rgba(255, 215, 0, 0.12);
-            border: 2px solid #FFD700;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px 0;
+            background: rgba(130,71,229,0.12);
+            border: 1.5px solid var(--pol-purple);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+            margin: 16px 0;
             width: 100%;
             box-sizing: border-box;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px rgba(130,71,229,0.15);
             text-align: center;
-            transition: box-shadow 0.2s;
+            transition: box-shadow 0.2s, transform 0.15s;
             max-width: 100%;
             }
 
@@ -943,19 +995,18 @@
         </div>
         <!-- Start Menu -->
         <div id="startMenu" class="menu" style="display: none;">
-            <h1>🦘 Jump & Collect</h1>
+            <h1>🦘 Jump &amp; Collect</h1>
             <div class="currency-display">
                 <div class="coin-icon"></div>
-                <span>Gold: <span id="totalGold">0</span></span>
-                <div class="plai-icon" style="margin-left: 20px;"></div>
-                <span>PLAI: <span id="totalPLAI">0</span></span>
+                <span>Gold: <span id="totalGold" style="color:var(--pol-gold);">0</span></span>
+                <div class="plai-icon" style="margin-left: 18px;"></div>
+                <span>POL: <span id="totalPLAI" style="color:var(--pol-purple-light);">0</span></span>
             </div>
             <div class="stats">
-                <p>High Score: <span id="highScore">0</span></p>
-                <p>Games Played: <span id="gamesPlayed">0</span></p>
+                <p style="color:var(--pol-text);">High Score: <span id="highScore" style="color:var(--pol-gold);">0</span></p>
+                <p style="color:var(--pol-text);">Games Played: <span id="gamesPlayed" style="color:var(--pol-purple-light);">0</span></p>
             </div>
             <p>Collect coins for 60 seconds!</p>
-            
 
 	<div class="button-grid">
   		<button onclick="startGame()">🎮 Start</button>
@@ -966,12 +1017,11 @@
 		<button onclick="openVault()">💰 Game Vault</button>
   		<button onclick="openJumpPass()">🎫 Jump Pass</button>
   		<button onclick="openTasks()">📅 Tasks</button>
-        <!--<button onclick="openEventsMenu()">🎉 Events</button>  TODO: change to openEventsMenu() -->
 	</div>
 
-    <p id="welcomeUser" style="font-size:1.1em; color:#FFD700; margin-top:10px; margin-bottom:0;"></p>
+    <p id="welcomeUser" style="font-size:1em; color:var(--pol-purple-light); margin-top:8px; margin-bottom:0;"></p>
     <p>Click and jump, collect as much as possible!</p>
-	<p>Make sure to only collect the coins and avoid the spikes.</p>
+	<p>Collect coins and avoid the spikes.</p>
         </div>
         <!-- Battle pass/jump pass menu -->
         <div id="jumpPassMenu" class="menu" style="display: none;">
@@ -993,7 +1043,7 @@
                         <div class="balance-item">
                             <div class="plai-icon"></div>
                             <div class="balance-info">
-                                <div class="balance-label">$PLAI</div>
+                                <div class="balance-label">$POL</div>
                                 <div class="balance-value" id="plai-balance">156.78</div>
                             </div>
                         </div>
@@ -1016,7 +1066,7 @@
                                 ⭐ Premium Pass
                                 <span class="premium-badge">PREMIUM</span>
                             </div>
-                            <button class="unlock-button">Unlock for 1000 $PLAI</button>
+                            <button class="unlock-button">Unlock for 1000 $POL</button>
                         </div>
                         <div class="rewards-container" id="premium-rewards">
                             <!-- Premium rewards will be generated here -->
@@ -1076,13 +1126,13 @@
             <h1>💰 Game Vault</h1>
             <div class="currency-display">
                 <div class="plai-icon"></div>
-                <span>Your PLAI: <span id="vaultUserPLAI">undefined</span></span>
+                <span>Your POL: <span id="vaultUserPLAI">0</span></span>
             </div>
             
             <div class="stats">
                 <h2>📊 Ecosystem Overview</h2>
-                <p>Total PLAI Spent by All Players: <span id="totalPLAISpent" style="color: #9D4EDD; font-weight: bold;">0</span></p>
-                <p>Developer Share (70%): <span id="developerShare" style="color: #FFD700; font-weight: bold;">0</span></p>
+                <p>Total POL Spent by All Players: <span id="totalPLAISpent" style="color: var(--pol-purple-light); font-weight: bold;">0</span></p>
+                <p>Developer Share (70%): <span id="developerShare" style="color: var(--pol-gold); font-weight: bold;">0</span></p>
             </div>
             
             <div class="shop-section">
@@ -1102,7 +1152,7 @@
                 <div class="shop-item">
                     <div class="shop-item-info">
                         <div class="shop-item-name">🎮 Gameplay Rewards Pool</div>
-                        <div class="shop-item-desc">25% of developer share - Win PLAI by playing games</div>
+                        <div class="shop-item-desc">25% of developer share - Win POL by playing games</div>
                     </div>
                     <div class="shop-item-price">
                         <div class="plai-icon" style="width: 16px; height: 16px; margin-right: 4px;"></div>
@@ -1125,14 +1175,14 @@
             <div class="shop-section">
                 <h2>📈 Your Statistics</h2>
                 <div class="stats">
-                    <p>Your Total PLAI Spent: <span id="userTotalSpent" style="color: #9D4EDD;">0</span></p>
+                    <p>Your Total POL Spent: <span id="userTotalSpent" style="color: var(--pol-purple-light);">0</span></p>
                     <p>Contribution to Ecosystem: <span id="userContribution">0%</span></p>
                 </div>
             </div>
             
             <button onclick="goHome()" class="back-button">🏠 Back to Home</button>
                 </div>
-            </div>      
+            </div>
 										
         <!-- Shop Menu -->
         <div id="shopMenu" class="menu" style="display: none;">
@@ -1140,8 +1190,8 @@
             <div class="currency-display">
                 <div class="coin-icon"></div>
                 <span>Gold: <span id="shopGold">0</span></span>
-                <div class="plai-icon" style="margin-left: 20px;"></div>
-                <span>PLAI: <span id="shopPLAI">undefined</span></span>
+                <div class="plai-icon" style="margin-left: 18px;"></div>
+                <span>POL: <span id="shopPLAI">0</span></span>
             </div>
             
             <div class="shop-section">
@@ -1183,10 +1233,10 @@
                         <div class="shop-item-desc">
                             <ul style="text-align:left; margin:0 0 0 1em; color:#FFD700;">
                                 <li>+10% XP from tasks</li>
-                                <li>3 free spin tickets (per buy)</li>
-                                <li>Spikes only -15s</li>
+                                <li>3 free spin tickets (once per sub)</li>
+                                <li>Spikes only -15s instead of -20s</li>
                                 <li>Task reroll price -20%</li>
-                                <li>+1 daily task slot (4 total)</li>
+                                <li>+1 extra daily task slot (4 total)</li>
                             </ul>
                         </div>
                     </div>
@@ -1207,7 +1257,7 @@
                     </div>
                     <div class="shop-item-price">
                         <div class="plai-icon" style="width: 16px; height: 16px; margin-right: 4px;"></div>
-                        100
+                        100 POL
                     </div>
                     <button onclick="buyPremium('clockDrops')" id="clockButton">Buy</button>
                 </div>
@@ -1219,7 +1269,7 @@
                     </div>
                     <div class="shop-item-price">
                         <div class="plai-icon" style="width: 16px; height: 16px; margin-right: 4px;"></div>
-                        300
+                        300 POL
                     </div>
                     <button onclick="buyPremium('magnetPower')" id="magnetButton">Buy</button>
                 </div>
@@ -1244,7 +1294,7 @@
         <h2>📅 Tasks</h2>
         <div class="currency-display" style="justify-content: center; margin-bottom: 10px;">
             <div class="plai-icon"></div>
-            <span>PLAI: <span id="tasksPLAI"></span></span>
+            <span>POL: <span id="tasksPLAI" style="color:var(--pol-purple-light);"></span></span>
             <span style="margin-left: 20px;">
                 <span style="color:#00FFAA;">XP: <span id="tasksXP"></span></span>
             </span>
@@ -1272,7 +1322,7 @@
                 <th>Place</th>
                 <th>Name</th>
                 <th>Points</th>
-                <th>PLAI to Win</th>
+        <th>POL to Win</th>
             </tr>
         </thead>
         <tbody id="leaderboardBody">
@@ -1285,7 +1335,7 @@
     </div> 
        <div id="leaderboardDisclaimer" style="color:#FFD700; font-size:13px; margin-top:10px; text-align:center;"></div>
        <button onclick="goHome()" class="back-button">🏠 Back to Home</button>
-       <p> The top 10 will win $PLAI tokens at the end of the week. </p>
+       <p style="color:var(--pol-text-dim);"> The top 10 will win $POL tokens at the end of the week. </p>
     </div>
 
 
@@ -1296,7 +1346,7 @@
   <div class="info-section">
     <h3>🎮 How to Play</h3>
     <p>Click or tap to jump. Collect as many gold coins as possible in 60 seconds. Each coin is worth 10 points. Avoid falling or hitting the spikes.</p>
-    <p>You can use the shop to buy upgrades and customise your game. Play and compete in the leaderboard to win weekly $PLAI tokens.</p>
+    <p>You can use the shop to buy upgrades and customise your game. Play and compete in the leaderboard to win weekly $POL tokens.</p>
   </div>
 
   <div class="info-section">
@@ -1308,20 +1358,20 @@
   </div>
 
   <div class="info-section">
-    <h3>💰 $PLAI Ecosystem</h3>
-    <p>All the $PLAI spend will be used in the following way (from the 70% going to developer):</p>
+    <h3>💰 $POL Ecosystem</h3>
+    <p>All the $POL spent will be used in the following way (from the 70% going to developer):</p>
     <ul>
       <li>20% for leaderboard pool.</li>
-      <li>25% for game play pool (win $PLAI by playing).</li>
+      <li>25% for game play pool (win $POL by playing).</li>
       <li>15% for "Jump Pass" shared with everyone reaching the end.</li>
       <li>40% for developer for further development.</li>
     </ul>
-    <p>Example when 100 $PLAI is spend:<br>100 * 70% = 70 $PLAI.</p>
+    <p>Example when 100 $POL is spent:<br>100 * 70% = 70 $POL.</p>
     <ul>
-      <li>20% - leaderboard pool. => 14 $PLAI</li>
-      <li>25% - game play pool. => 17.50 $PLAI</li>
-      <li>15% - "Jump Pass" => 10.50 $PLAI</li>
-      <li>40% - for further development. => 28 $PLAI</li>
+      <li>20% - leaderboard pool. => 14 $POL</li>
+      <li>25% - game play pool. => 17.50 $POL</li>
+      <li>15% - "Jump Pass" => 10.50 $POL</li>
+      <li>40% - for further development. => 28 $POL</li>
     </ul>
   </div>
 
@@ -1377,10 +1427,10 @@
         <h1>🎡 Wheel of Fortune</h1>
         <div class="currency-display">
             <span>🎟️ Tickets: <span id="wheelTickets">0</span></span>
-            <div class="plai-icon" style="margin-left: 20px;"></div>
-            <span>PLAI: <span id="wheelPLAI">0</span></span>
+            <div class="plai-icon" style="margin-left: 18px;"></div>
+            <span>POL: <span id="wheelPLAI">0</span></span>
         </div>
-        <p>Use a ticket to spin the wheel! No tickets? Spin for 5 PLAI.</p>
+        <p>Use a ticket to spin the wheel! No tickets? Spin for 5 POL.</p>
 
         <div class="wheel-container">
             <div class="wheel-pointer"></div>
@@ -1396,25 +1446,26 @@
     </div>
 
     <div id="walletMenu" class="menu" style="display: block;">
-        <h1>Welcome to Jump & Collect</h1>
-        <button onclick="connectWallet()" class="menu-btn" style="margin: 20px 0 10px 0;">🔗 Connect Wallet</button>
-        <button onclick="buyPLAI()" class="menu-btn" style="background: linear-gradient(45deg, #9D4EDD, #FFD700);">💸 Buy PLAI on Base</button>
-        <button onclick="window.open('https://app.debridge.finance/r/32142', '_blank')" class="menu-btn" style="background: linear-gradient(45deg, #00BFFF, #FFD700); display: inline-block; margin-bottom: 10px; text-decoration: none;">💸 Bridge to Base</button>
-        <p style="margin-top: 24px; color: #FFD700; font-size: 1.1em;">
+        <h1>🦘 Jump &amp; Collect</h1>
+        <p style="color: var(--pol-purple-light); font-size:1em; margin-bottom:18px;">Powered by <strong style="color:#8247E5;">Polygon</strong></p>
+        <button onclick="connectWallet()" class="menu-btn" style="margin: 16px 0 10px 0; background: linear-gradient(135deg,#8247E5,#5A2BAB);">🔗 Connect Wallet</button>
+        <button onclick="buyPOL()" class="menu-btn" style="background: linear-gradient(135deg, #8247E5, #C570E8);">💸 Buy POL on Polygon</button>
+        <button onclick="window.open('https://app.debridge.finance/r/32142', '_blank')" class="menu-btn" style="background: linear-gradient(135deg, #1b6ca8, #8247E5); display: inline-block; margin-bottom: 10px; text-decoration: none;">🌉 Bridge to Polygon</button>
+        <p style="margin-top: 20px; color: var(--pol-purple-light); font-size: 1em;">
             Connect your wallet to start playing and earning rewards.<br>
-            Need PLAI? Buy it on Base and come back to play!
+            Need POL? Buy it on Polygon and come back to play!
         </p>
-        <div style="margin-top: 18px; color: #FF4444; font-size: 0.98em;">
+        <div style="margin-top: 16px; color: #FF6B6B; font-size: 0.92em; background: rgba(255,75,92,0.1); border-radius:10px; padding:12px; border:1px solid rgba(255,75,92,0.3);">
             <strong>Disclaimer:</strong> This is a test version. Game features and balances may change at any time. There might be bugs and glitches. The Game UI is currently not fully optimized for mobile devices and is being worked on.
             For any issues or feedback, please contact me at discord by sending me a private message to _nicholoco
-        <br><strong>ALL THE TRANSACTIONS DONE IN GAME ARE SEEN AS DONATIONS TO THE DEVELOPER DURING THE BETA TESTING. DO NOT SPEND PLAI IF YOU DON'T WANT TO DONATE.</strong></br>
+        <br><br><strong>ALL TRANSACTIONS IN GAME ARE CONSIDERED DONATIONS TO THE DEVELOPER DURING BETA TESTING. DO NOT SPEND POL IF YOU DON'T WANT TO DONATE.</strong>
         </div>
-        <div style="margin-top: 18px; color: #aaa; font-size: 0.95em;">
+        <div style="margin-top: 16px; color: var(--pol-text-dim); font-size: 0.9em;">
             <span>© 2025 Nicholoco. All rights reserved.<br>
             Game design &amp; code by Nicholoco.<br>
             Powered with a little help from AI ✨</span>
         </div>
-        <p>Username: <span id="playerUsername"></span></p>
+        <p style="color:var(--pol-text-dim);">Username: <span id="playerUsername" style="color:var(--pol-purple-light);"></span></p>
     </div>
 
     <div id="usernameMenu" class="menu" style="display: none;">
@@ -1428,33 +1479,38 @@
     </div>
 
     <script>
-const PLAI_TOKEN_ADDRESS = "0x977EA2DDa60C1FdFfd4b0377b036D3871f2d01a9";
-const PLAI_TOKEN_DECIMALS = 6;
-const ERC20_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function transfer(address to, uint256 amount) returns (bool)"
-];
+// POL is the native token of Polygon (formerly MATIC). No ERC20 contract needed.
+// Chain: Polygon Mainnet - chainId 0x89 (137)
+const POL_CHAIN_ID = '0x89';
+const POL_CHAIN_PARAMS = {
+    chainId: '0x89',
+    chainName: 'Polygon Mainnet',
+    nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+    rpcUrls: ['https://polygon-rpc.com'],
+    blockExplorerUrls: ['https://polygonscan.com']
+};
+// Legacy alias kept for any code that references these directly
+const PLAI_TOKEN_ADDRESS = null; // POL is native, no contract
+const PLAI_TOKEN_DECIMALS = 18;
+const ERC20_ABI = [];
 let leaderboardTimerInterval = null;
-async function updatePLAIWalletBalance() {
+async function updatePOLWalletBalance() {
     if (!window.ethereum || !savedGameData.player.wallet) return;
-
     try {
         const provider = new ethers.BrowserProvider(window.ethereum);
-        const contract = new ethers.Contract(PLAI_TOKEN_ADDRESS, ERC20_ABI, provider);
-        const rawBalance = await contract.balanceOf(savedGameData.player.wallet);
-        // Convert to human-readable using 6 decimals
-        const balance = ethers.formatUnits(rawBalance, PLAI_TOKEN_DECIMALS);
-
-        // Update in-game display and data
-        savedGameData.player.plai = parseFloat(balance);
+        const rawBalance = await provider.getBalance(savedGameData.player.wallet);
+        const balance = parseFloat(ethers.formatUnits(rawBalance, 18));
+        savedGameData.player.plai = parseFloat(balance.toFixed(4));
         saveAllData();
         updateHomeScreen();
         if (typeof updateShopScreen === "function") updateShopScreen();
         if (typeof updatePassBalances === "function") updatePassBalances();
     } catch (err) {
-        console.error("Failed to fetch PLAI balance:", err);
+        console.error("Failed to fetch POL balance:", err);
     }
 }
+// Alias for legacy calls
+const updatePLAIWalletBalance = updatePOLWalletBalance;
 const DEFAULT_SAVED_GAME_DATA = {
     player: {
         gold: 0,
@@ -1470,18 +1526,15 @@ const DEFAULT_SAVED_GAME_DATA = {
             magnetPowerUnlocked: false,
             giftSpeedLevel: 0,
             giftSpeedMaxLevel: 5,
-            jumpMaxLevel: 10,            
+            jumpMaxLevel: 10,
+            premiumSub: {
+                active: false,
+                expires: 0,
+                freeTicketsClaimed: false
+            }
         },
-        premiumSub: {
-            active: false,
-            expires: 0,
-            freeTicketsClaimed: false
-            },
         userItems: {
-            unlocked: [
-                'skin_red', 'bg_default', 'fx_none',
-                'skin_buildingcat', 'skin_zombie', 'skin_chocolate', 'skin_bear'
-            ],
+            unlocked: ['skin_red', 'bg_default', 'fx_none'],
             selected: { skin: 'skin_red', background: 'bg_default', effect: 'fx_none' }
         },
         goldRush: {
@@ -1529,32 +1582,6 @@ const DEFAULT_SAVED_GAME_DATA = {
     },
 
 };
-
-    // Master list of all unlockable items
-    const ALL_ITEMS = [
-      // Skins (from old avatar system, now in skins menu)
-      { id: 'skin_red', type: 'skin', name: 'Classic Red', color: '#FF6B6B', source: 'shop', price: 0 },
-      { id: 'skin_cyan', type: 'skin', name: 'Aqua Cyan', color: '#4ECDC4', source: 'shop', price: 250 },
-      { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
-      { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
-      { id: 'skin_city', type: 'skin', name: 'city building', image: 'images/skin_city.png', source: 'test', price: 0 },
-      { id: 'skin_zombie', type: 'skin', name: 'zombie', image: 'images/skin_zombie.png', source: 'shop', price: 1 },
-      { id: 'skin_chocolate', type: 'skin', name: 'chocolate', image: 'images/skin_chocolate.png', source: 'test', price: 0 },
-      { id: 'skin_bear', type: 'skin', name: 'bear', image: 'images/skin_bear.png', source: 'test', price: 0 },
-
-      // Backgrounds
-      { id: 'bg_default', type: 'background', name: 'Default Sky', gradient: 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)', source: 'default' },
-      { id: 'bg_ocean', type: 'background', name: 'Ocean Theme', gradient: 'linear-gradient(to bottom, #00BFFF, #1E90FF 70%, #008080 70%, #005A5A 100%)', source: 'pass' },
-      { id: 'bg_space', type: 'background', name: 'Space Theme', gradient: 'linear-gradient(to bottom, #0c0a1a, #2a2a4a 70%, #1a1a2a 70%, #000 100%)', source: 'pass' },
-      { id: 'bg_forest', type: 'background', name: 'Forest Theme', gradient: 'linear-gradient(to bottom, #228B22, #556B2F 70%, #3B2A0A 70%, #211703 100%)', source: 'pass' },
-      { id: 'bg_neon', type: 'background', name: 'Neon Theme', gradient: 'linear-gradient(to bottom, #ff00cc, #333399 70%, #1a1a1a 70%, #000 100%)', source: 'pass' },
-      { id: 'bg_crystal', type: 'background', name: 'Crystal Theme', gradient: 'linear-gradient(to bottom, #B0E0E6, #ADD8E6 70%, #708090 70%, #465058 100%)', source: 'pass' },
-      
-      // Effects
-      { id: 'fx_none', type: 'effect', name: 'None', source: 'default' },
-      { id: 'fx_sparkle', type: 'effect', name: 'Sparkle Trail', source: 'pass' }, // Example, not yet unlockable
-    ];
-    
 /*
 let savedGameData = {
     player: {
@@ -1858,15 +1885,12 @@ const TASK_POOL = [
             return now.getTime() + 24*60*60*1000; // next midnight UTC
         }
         function getNextWeeklyResetUTC() {
-        const now = new Date();
-        now.setUTCHours(0,0,0,0); // Today at 00:00 UTC
-        let day = now.getUTCDay();
-        let daysUntilNextSunday = (7 - day) % 7;
-        if (daysUntilNextSunday === 0) {
-            // If today is Sunday, set to next Sunday
-            daysUntilNextSunday = 7;
-        }
-        return now.getTime() + daysUntilNextSunday * 24 * 60 * 60 * 1000;
+            const now = new Date();
+            // Set to next Sunday 00:00 UTC
+            const day = now.getUTCDay();
+            const daysUntilSunday = (7 - day) % 7;
+            now.setUTCHours(0,0,0,0);
+            return now.getTime() + daysUntilSunday*24*60*60*1000;
         }
 
         function getRandomTask(isDaily, excludeTypes=[]) {
@@ -1904,41 +1928,20 @@ const TASK_POOL = [
 
 
         function resetTasksIfNeeded() {
-    const now = Date.now();
-    let changed = false;
+            const now = Date.now();
+            let changed = false;
+            if (!savedGameData.tasks.dailyReset || now > savedGameData.tasks.dailyReset) {
+                savedGameData.tasks.daily= generateTasks(true);
+                savedGameData.tasks.dailyReset = getNextDailyResetUTC();
+                changed = true;
+             }
+            if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
+                savedGameData.tasks.weekly = generateTasks(false);
+                savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
+                changed = true;
 
-    // Only increment if a reset is actually needed
-    if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
-        weeklyResetLoopCount++;
-    } else {
-        weeklyResetLoopCount = 0; // Reset the loop count if no reset is needed
-    }
-
-    if (weeklyResetLoopCount > 10) {
-        console.warn("Weekly task reset loop detected! Forcing hard reset.");
-        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-        savedGameData.tasks.weekly = generateTasks(false);
-        saveAllData();
-        weeklyResetLoopCount = 0;
-        return;
-    }
-
-    if (!savedGameData.tasks.dailyReset || now > savedGameData.tasks.dailyReset) {
-        savedGameData.tasks.daily = generateTasks(true);
-        savedGameData.tasks.dailyReset = getNextDailyResetUTC();
-        changed = true;
-    }
-    if (!savedGameData.tasks.weeklyReset || now > savedGameData.tasks.weeklyReset) {
-        savedGameData.tasks.weekly = generateTasks(false);
-        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-        changed = true;
-        weeklyResetLoopCount = 0; // Reset the loop count after a successful weekly reset
-    }
-
-    if (changed) {
-        saveAllData();
-    }
-}
+            }
+        }
 
         function getNextLeaderboardResetUTC() {
         const now = new Date();
@@ -2037,23 +2040,6 @@ const TASK_POOL = [
         changed = true;
     }
 
-        // Fix weekly tasks array
-        if (!Array.isArray(savedGameData.tasks.weekly)) {
-        savedGameData.tasks.weekly = [];
-        changed = true;
-    }
-
-    // Fix weekly reset timestamp
-    if (
-        typeof savedGameData.tasks.weeklyReset !== 'number' ||
-        isNaN(savedGameData.tasks.weeklyReset) ||
-        savedGameData.tasks.weeklyReset < Date.now() // If in the past, force new reset
-    ) {
-        savedGameData.tasks.weeklyReset = getNextWeeklyResetUTC();
-        savedGameData.tasks.weekly = generateTasks(false); // Generate new weekly tasks
-        changed = true;
-    }
-
     // 5. Save if anything was fixed
     if (changed) {
         saveAllData && saveAllData();
@@ -2063,19 +2049,8 @@ const TASK_POOL = [
 
         // Call this once at game start:
         repairCorruptedGameData();
-        let weeklyResetLoopCount = 0;
         resetTasksIfNeeded();
         resetLeaderboardIfNeeded()
-        const imageCache = {};
-        // Preload images   
-    function preloadImage(src) {
-    if (!imageCache[src]) {
-        const img = new Image();
-        img.src = src;
-        imageCache[src] = img;
-    }
-    return imageCache[src];
-    }
 
         
         // Power-ups
@@ -2157,7 +2132,7 @@ const TASK_POOL = [
         }
         let secondsPlayedThisGame = 0;
         function startGame() {
-            let secondsPlayedThisGame = 0;
+            secondsPlayedThisGame = 0;
             document.getElementById('ui').style.display = 'block';
             document.getElementById('timer').style.display = 'block';
             gameState = STATES.PLAYING;
@@ -2425,9 +2400,6 @@ function updateVaultScreen() {
 function openGoldRush() {
    if (!isGoldRushActive()) {
        showRewardNotification("Gold Rush is not active right now. Please come back during the first week of the month!");
-       setTimeout(() => {
-           openEventsMenu();
-       }, 1000);
        return;
    }
    // Only hide menus and show the event if active
@@ -2468,7 +2440,7 @@ function openGoldRush() {
             <span style="font-size:1.1em;">Your Gold: <b>${savedGameData.player.gold}</b></span>
         </div>
         <div style="background:rgba(0,0,0,0.18); border-radius:16px; padding:18px 16px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            <p style="margin-bottom:10px;">Deposit your gold for a chance to win a PLAI mystery box!<br>
+            <p style="margin-bottom:10px;">Deposit your gold for a chance to win a POL mystery box!<br>
             The more you deposit, the higher your chance to win.</p>
             <div style="font-weight:bold; color:#FFD700; margin-bottom:8px;">
                 Deposited: ${deposited} / ${maxDeposit}
@@ -2484,8 +2456,8 @@ function openGoldRush() {
             <b style="color:#FFD700;">Possible Rewards if you win:</b>
             <table style="width:100%; margin-top:8px; color:white; background:rgba(255,255,255,0.04); border-radius:8px; border-collapse:separate; border-spacing:0;">
                 <tr>
-                    <th style="padding:6px 0; color:#FFD700; font-size:1.08em;">PLAI</th>
-                    <th style="padding:6px 0; color:#FFD700; font-size:1.08em;">Chance</th>
+                    <th style="padding:6px 0; color:#8247E5; font-size:1.08em;">POL</th>
+                    <th style="padding:6px 0; color:#8247E5; font-size:1.08em;">Chance</th>
                 </tr>
                 ${rewards.map(r => `
                     <tr>
@@ -2501,7 +2473,7 @@ function openGoldRush() {
                 <b>Note:</b> At full deposit (10,000 gold), your maximum win chance is <b>90%</b>.
             </div>
             <div style="font-size:0.93em; color:#FF4444; margin-top:7px;">
-            <b>Important:</b> If there is not enough $PLAI in the prize pool, your gold will be fully refunded instead of receiving PLAI.
+            <b>Important:</b> If there is not enough $POL in the prize pool, your gold will be fully refunded instead of receiving POL.
             </div>
         </div>
     `;
@@ -2621,7 +2593,7 @@ if (isPremiumSubActive()) {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.jumpLevel++;
-                    updateAllTasksProgress("spend_gold", cost);
+                    updateAllTasksProgress("spend_gold", amountSpent);
                     updateShopScreen();
                 }
             } else if (type === 'time') {
@@ -2629,7 +2601,7 @@ if (isPremiumSubActive()) {
                 if (savedGameData.player.gold >= cost) {
                     savedGameData.player.gold -= cost;
                     savedGameData.player.upgrades.timeLevel++;
-                    updateAllTasksProgress("spend_gold", cost);
+                    updateAllTasksProgress("spend_gold", amountSpent);
                     updateShopScreen();
                 }
             }
@@ -2654,7 +2626,7 @@ if (isPremiumSubActive()) {
         }
     } else if (type === 'giftSpeed' && savedGameData.player.upgrades.giftSpeedLevel < savedGameData.player.upgrades.giftSpeedMaxLevel) {
     const cost = Math.floor(500 * Math.pow(1.5, savedGameData.player.upgrades.giftSpeedLevel));
-    if (await sendPLAI(cost)) {
+    if (await sendPOL(cost)) {
         savedGameData.player.upgrades.giftSpeedLevel++;
         updateShopScreen();
     		}
@@ -2782,7 +2754,7 @@ async function buyPremiumSub() {
 
     if (plaiChance && payoutPLAI(plaiReward, 'gameplayPool')) {
         // Award PLAI
-        showRewardMessage(`+${plaiReward} PLAI!`, '#9D4EDD');
+        showRewardMessage(`+${plaiReward} POL!`, '#8247E5');
         return;
     }
 
@@ -3095,20 +3067,8 @@ async function buyPremiumSub() {
             if (gameState === STATES.PLAYING) {
                 // Draw player
                 const selectedSkin = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.skin);
-
-            if (selectedSkin && selectedSkin.image) {
-                const img = preloadImage(selectedSkin.image);
-            if (img.complete) {
-                ctx.drawImage(img, player.x, player.y, player.width, player.height);
-            } else {
-            // Optionally, draw a placeholder or fallback color while loading
-            ctx.fillStyle = selectedSkin.color || '#FF6B6B';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-            }
-            } else {
-            ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B';
-            ctx.fillRect(player.x, player.y, player.width, player.height);
-            }
+                ctx.fillStyle = selectedSkin ? selectedSkin.color : '#FF6B6B'; // Fallback color
+                ctx.fillRect(player.x, player.y, player.width, player.height);
                 
                 // Player face
                 ctx.fillStyle = 'white';
@@ -3303,23 +3263,6 @@ if (rewardMessage) {
     ctx.restore();
 }
 
-	// Draw reward message
-	if (rewardMessage) {
-    		ctx.save();
-    		ctx.globalAlpha = rewardMessage.opacity;
-    		ctx.fillStyle = rewardMessage.color;
-    		ctx.font = 'bold 18px Arial';
-    		ctx.textAlign = 'center';
-    		ctx.strokeStyle = 'white';
-    		ctx.lineWidth = 3;
-    
-    	// Draw text outline
-    		ctx.strokeText(rewardMessage.text, rewardMessage.x + player.width/2, rewardMessage.y);
-    	// Draw text
-    		ctx.fillText(rewardMessage.text, rewardMessage.x + player.width/2, rewardMessage.y);
-     	ctx.restore();   
-	}
-
                 // Draw magnet field effect
                 if (magnetActive) {
                     ctx.strokeStyle = 'rgba(52, 152, 219, 0.3)';
@@ -3401,25 +3344,15 @@ if (rewardMessage) {
                 updateBoosterUI();
                 lastBoosterUpdate = now;
             }
-
-            if (document.getElementById('tasksMenu').style.display === 'block') {
-                renderTasksMenu();}
         }
 
         function applySelectedBackground() {
             const selectedBg = ALL_ITEMS.find(i => i.id === savedGameData.player.userItems.selected.background);
-            if (selectedBg) {
-                if (selectedBg.image) {
-                    // Use image as background
-                    canvas.style.background = `url('${selectedBg.image}') center center / cover no-repeat`;
-                } else if (selectedBg.gradient) {
-                    canvas.style.background = selectedBg.gradient;
-                } else if (selectedBg.color) {
-                    canvas.style.background = selectedBg.color;
-                } else {
-                    // Fallback
-                    canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
-                }
+            if (selectedBg && selectedBg.gradient) {
+                canvas.style.background = selectedBg.gradient;
+            } else {
+                // Fallback to default
+                canvas.style.background = 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)';
             }
         }
 
@@ -3488,7 +3421,7 @@ if (rewardMessage) {
                 } else if (progress >= task.goal) {
                     claimBtn = `<button class="menu-btn" data-action="claim" data-index="${i}" data-daily="${showingDailyTasks}">Claim</button>`;
                 } else if (task.canReroll) {
-                    rerollBtn = `<button class="menu-btn" data-action="reroll" data-index="${i}" data-daily="${showingDailyTasks}">Reroll (${rerollCost} PLAI)</button>`;
+                    rerollBtn = `<button class="menu-btn" data-action="reroll" data-index="${i}" data-daily="${showingDailyTasks}">Reroll (${rerollCost} POL)</button>`;
                 }
                 tasksList.innerHTML += `
                     <div style="background:rgba(0,0,0,0.2); border-radius:10px; margin:10px 0; padding:15px;">
@@ -3520,7 +3453,7 @@ if (rewardMessage) {
                 tasks[index] = getRandomTask(isDaily, usedTypes);
                 renderTasksMenu();
             } else {
-                showRewardNotification("❌ Not enough PLAI to reroll!");
+                showRewardNotification("❌ Not enough POL to reroll!");
             }
         }
 
@@ -3529,7 +3462,7 @@ if (rewardMessage) {
             const task = tasks[index];
             if (!task.completed && task.progress >= task.goal) {
                 checkActiveBoosters();
-                const xpGained = Math.round(task.xp * savedGameData.activeBoosters.xp.multiplier);
+                let xpGained = Math.round(task.xp * savedGameData.activeBoosters.xp.multiplier);
                 if (isPremiumSubActive()) xpGained = Math.round(xpGained * 1.1);
                 savedGameData.player.totalXP += xpGained;
                 // Add XP to pass
@@ -3581,15 +3514,6 @@ if (rewardMessage) {
         window.rerollTask = rerollTask;
         window.claimTask = claimTask;
 
-            if (!coinSpawnTimer) coinSpawnTimer = setInterval(createCoin, 1500);
-            if (savedGameData.player.upgrades.clockDropsUnlocked && !clockSpawnTimer) clockSpawnTimer = setInterval(createClock, Math.random() * 5000 + 5000);
-            if (savedGameData.player.upgrades.magnetPowerUnlocked && !magnetSpawnTimer) magnetSpawnTimer = setInterval(createMagnet, Math.random() * 8000 + 12000);
-            if (!giftSpawnTimer) {
-                const giftSpawnInterval = Math.max(20000, 60000 - (savedGameData.player.upgrades.giftSpeedLevel * 5000));
-                giftSpawnTimer = setInterval(createGift, giftSpawnInterval);
-            }
-            if (!spikeSpawnTimer) spikeSpawnTimer = setInterval(() => { createSpike(); }, Math.random() * 7000 + 3000);
-   
     </script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -3648,7 +3572,7 @@ if (rewardMessage) {
             if (reward.type === 'boost') {
                 amountLabel.innerHTML = `${reward.amount}<br><small>${reward.duration}</small>`;
             } else if (reward.type === 'plai') {
-                amountLabel.textContent = `${reward.amount} $PLAI`;
+                amountLabel.textContent = `${reward.amount} $POL`;
             } else if (reward.type === 'ticket') {
                 amountLabel.innerHTML = `${reward.amount}<br>Spin Ticket${reward.amount > 1 ? 's' : ''}`;
             } else if (reward.type === 'background') {
@@ -3682,14 +3606,13 @@ if (rewardMessage) {
                     savedGameData.player.gold += reward.amount;
                     notificationMessage = `🪙 +${reward.amount} Coins claimed!`;
                     break;
-                    case 'plai':
-                    if (payoutPLAI(reward.amount, 'jumpPassPool')) { // future: change to gameplayPool
-                    notificationMessage = `💎 +${reward.amount} $PLAI claimed!`;
+                case 'plai':
+                    if (payoutPLAI(reward.amount, 'jumpPassPool')) {
+                    notificationMessage = `💎 +${reward.amount} $POL claimed!`;
                     } else {
-        // Not enough PLAI in the pool, convert to gold
-            const goldAmount = reward.amount * 50;
+        const goldAmount = reward.amount * 50;
             savedGameData.player.gold += goldAmount;
-            notificationMessage = `💎 PLAI pool is empty! You received ${goldAmount} Gold instead.`;
+            notificationMessage = `💎 POL pool is empty! You received ${goldAmount} Gold instead.`;
             }
             break;
                 case 'boost':
@@ -3702,17 +3625,15 @@ if (rewardMessage) {
         // Already owned, give 10 PLAI (or gold if not enough in pool)
         let plaiReward = 10;
         if (payoutPLAI(plaiReward, 'jumpPassPool')) {
-            notificationMessage = `🎨 You already own this background! +${plaiReward} $PLAI instead!`;
+            notificationMessage = `🎨 You already own this background! +${plaiReward} $POL instead!`;
         } else {
-            // Not enough PLAI, convert to gold
-            const availablePLAI = savedGameData.global.ecosystemData.jumpPassPool;
-            if (availablePLAI > 0) {
-                // Pay out remaining PLAI, then convert the rest to gold
-                payoutPLAI(availablePLAI, 'jumpPassPool');
+            const availablePOL = savedGameData.global.ecosystemData.jumpPassPool;
+            if (availablePOL > 0) {
+                payoutPLAI(availablePOL, 'jumpPassPool');
             }
-            const goldReward = (plaiReward - availablePLAI) * 50;
-            savedGameData.player.gold += (availablePLAI * 50) + goldReward;
-            notificationMessage = `🎨 You already own this background! Pool empty: You received ${availablePLAI > 0 ? availablePLAI + " $PLAI and " : ""}${(availablePLAI * 50) + goldReward} Gold instead!`;
+            const goldReward = (plaiReward - availablePOL) * 50;
+            savedGameData.player.gold += (availablePOL * 50) + goldReward;
+            notificationMessage = `🎨 You already own this background! Pool empty: You received ${availablePOL > 0 ? availablePOL + " $POL and " : ""}${(availablePOL * 50) + goldReward} Gold instead!`;
         }
     } else {
         notificationMessage = `🎨 ${reward.amount} background unlocked!`;
@@ -3750,22 +3671,25 @@ if (rewardMessage) {
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(45deg, #00ff00, #00cc00);
-                color: white;
-                padding: 15px 25px;
-                border-radius: 10px;
-                font-weight: bold;
-                z-index: 1000;
+                top: 22px;
+                right: 22px;
+                background: linear-gradient(135deg, #1a1035, #2d1b69);
+                color: #fff;
+                padding: 14px 22px;
+                border-radius: 12px;
+                font-weight: 700;
+                font-family: 'Nunito', sans-serif;
+                font-size: 15px;
+                z-index: 9999;
                 animation: slideIn 0.3s ease;
-                max-width: 300px;
+                max-width: 320px;
                 text-align: center;
+                border: 1.5px solid rgba(130,71,229,0.6);
+                box-shadow: 0 8px 32px rgba(130,71,229,0.35);
+                backdrop-filter: blur(12px);
             `;
             notification.textContent = message;
-            
             document.body.appendChild(notification);
-            
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => notification.remove(), 300);
@@ -3816,28 +3740,20 @@ if (rewardMessage) {
         return; // Exit because they already own it.
     }
 
-    // Now, attempt to spend the PLAI.
-    // The spendPLAI function should return true on success, false on failure.
-    if (await sendPLAI(passCost)) {
-        // This code will only run if spendPLAI was successful.
+        // Now, attempt to spend the POL.
+    if (await sendPOL(passCost)) {
         console.log("Purchase successful! Unlocking premium pass.");
-
-        savedGameData.pass.premiumUnlocked = true; // Set the status
-        
-        // Update the UI to reflect the purchase
+        savedGameData.pass.premiumUnlocked = true;
         generateRewards();
         updatePassBalances();
         updateHomeScreen();
         DOM.unlockButton.textContent = 'UNLOCKED';
-        DOM.unlockButton.style.background = '#00ff00';
+        DOM.unlockButton.style.background = '#00C853';
         DOM.unlockButton.disabled = true;
-
         showRewardNotification('🌟 Premium Pass Unlocked!');
-
     } else {
-        // This code will run if spendPLAI failed (not enough money).
-        console.log("Purchase failed. Not enough PLAI.");
-        showRewardNotification('Not enough PLAI to unlock Premium Pass!');
+        console.log("Purchase failed. Not enough POL.");
+        showRewardNotification('Not enough POL to unlock Premium Pass!');
     }
 }
 
@@ -3943,7 +3859,7 @@ if (rewardMessage) {
             DOM.unlockButton.disabled = true;
             DOM.unlockButton.onclick = null;
         } else {
-            DOM.unlockButton.textContent = 'Unlock for 1000 $PLAI';
+            DOM.unlockButton.textContent = 'Unlock for 1000 $POL';
             DOM.unlockButton.style.background = '';
             DOM.unlockButton.disabled = false;
             DOM.unlockButton.onclick = unlockPremium;
@@ -4047,6 +3963,28 @@ function claimVaultTickets() {
     </div>
 
     <script>
+    // Master list of all unlockable items
+    const ALL_ITEMS = [
+      // Skins (from old avatar system, now in skins menu)
+      { id: 'skin_red', type: 'skin', name: 'Classic Red', color: '#FF6B6B', source: 'shop', price: 0 },
+      { id: 'skin_cyan', type: 'skin', name: 'Aqua Cyan', color: '#4ECDC4', source: 'shop', price: 250 },
+      { id: 'skin_blue', type: 'skin', name: 'Sky Blue', color: '#45B7D1', source: 'shop', price: 250 },
+      { id: 'skin_green', type: 'skin', name: 'Lime Green', color: '#96E6A1', source: 'shop', price: 250 },
+
+      // Backgrounds
+      { id: 'bg_default', type: 'background', name: 'Default Sky', gradient: 'linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #32CD32 70%, #228B22 100%)', source: 'default' },
+      { id: 'bg_ocean', type: 'background', name: 'Ocean Theme', gradient: 'linear-gradient(to bottom, #00BFFF, #1E90FF 70%, #008080 70%, #005A5A 100%)', source: 'pass' },
+      { id: 'bg_space', type: 'background', name: 'Space Theme', gradient: 'linear-gradient(to bottom, #0c0a1a, #2a2a4a 70%, #1a1a2a 70%, #000 100%)', source: 'pass' },
+      { id: 'bg_forest', type: 'background', name: 'Forest Theme', gradient: 'linear-gradient(to bottom, #228B22, #556B2F 70%, #3B2A0A 70%, #211703 100%)', source: 'pass' },
+      { id: 'bg_neon', type: 'background', name: 'Neon Theme', gradient: 'linear-gradient(to bottom, #ff00cc, #333399 70%, #1a1a1a 70%, #000 100%)', source: 'pass' },
+      { id: 'bg_crystal', type: 'background', name: 'Crystal Theme', gradient: 'linear-gradient(to bottom, #B0E0E6, #ADD8E6 70%, #708090 70%, #465058 100%)', source: 'pass' },
+      
+      // Effects
+      { id: 'fx_none', type: 'effect', name: 'None', source: 'default' },
+      { id: 'fx_sparkle', type: 'effect', name: 'Sparkle Trail', source: 'pass' }, // Example, not yet unlockable
+    ];
+
+
 
 
     function openSkins() {
@@ -4082,11 +4020,7 @@ function claimVaultTickets() {
                 const div = document.createElement('div');
                 div.style.width = '80px';
                 div.style.height = '80px';
-                if (item.image) {
-                div.style.background = `url('${item.image}') center center / cover no-repeat`;
-                } else {
                 div.style.background = item.gradient || item.color || '#ccc';
-                }
                 div.style.borderRadius = '10px';
                 div.style.border = '2px solid #555';
                 div.style.display = 'flex';
@@ -4260,14 +4194,13 @@ function claimVaultTickets() {
         if (savedGameData.player.tickets > 0) {
             savedGameData.player.tickets--;
         } else if (savedGameData.player.plai >= 5) {
-            if (!await sendPLAI(5)) { // spendPLAI should return true on success
-            
-                showRewardNotification("⚠️ Something went wrong with the PLAI transaction.");
+            if (!await sendPOL(5)) {
+                showRewardNotification("⚠️ Something went wrong with the POL transaction.");
                 return;
             }
-             showRewardNotification(`-5 PLAI used for a spin!`);
+             showRewardNotification(`-5 POL used for a spin!`);
         } else {
-            showRewardNotification("❌ Not enough tickets or PLAI to spin!");
+            showRewardNotification("❌ Not enough tickets or POL to spin!");
             return;
         }
 
@@ -4311,13 +4244,13 @@ function claimVaultTickets() {
         updatePassBalances();
     } else if (prize.type === 'plai') {
         if (payoutPLAI(prize.amount, 'jumpPassPool')) {
-            prizeMessage = `💎 You won ${prize.amount} PLAI!`;
-            updateVaultScreen(); // Update pool display
+            prizeMessage = `💎 You won ${prize.amount} POL!`;
+            updateVaultScreen();
             updatePassBalances();
         } else {
             const goldConversion = prize.amount * 50;
             savedGameData.player.gold += goldConversion;
-            prizeMessage = `💎 PLAI pool is empty! You received ${goldConversion} Gold instead.`;
+            prizeMessage = `💎 POL pool is empty! You received ${goldConversion} Gold instead.`;
             updatePassBalances();
         }
     }
@@ -4341,25 +4274,37 @@ function claimVaultTickets() {
            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
            const account = accounts[0];
 
-           // Check network
+           // Check network - Polygon Mainnet = 0x89
            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-           if (chainId !== '0x2105') {
+           if (chainId !== POL_CHAIN_ID) {
                try {
                    await window.ethereum.request({
                        method: 'wallet_switchEthereumChain',
-                       params: [{ chainId: '0x2105' }]
+                       params: [{ chainId: POL_CHAIN_ID }]
                    });
-                   showRewardNotification("✅ Switched to Base network!");
-                   showGoldRushResultOnLogin();
+                   showRewardNotification("✅ Switched to Polygon network!");
                } catch (switchError) {
-                   showRewardNotification("❌ Please switch to Base network in MetaMask.");
-                   return;
+                   // Chain not added yet — try adding it
+                   if (switchError.code === 4902) {
+                       try {
+                           await window.ethereum.request({
+                               method: 'wallet_addEthereumChain',
+                               params: [POL_CHAIN_PARAMS]
+                           });
+                       } catch (addError) {
+                           showRewardNotification("❌ Please add Polygon network to MetaMask.");
+                           return;
+                       }
+                   } else {
+                       showRewardNotification("❌ Please switch to Polygon network in MetaMask.");
+                       return;
+                   }
                }
            }
 
            savedGameData.player.wallet = account;
            saveAllData();
-           await updatePLAIWalletBalance();
+           await updatePOLWalletBalance();
            document.getElementById('walletMenu').style.display = 'none';
            if (!savedGameData.player.username) {
                document.getElementById('usernameMenu').style.display = 'block';
@@ -4404,11 +4349,7 @@ function claimVaultTickets() {
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                 if (accounts.length > 0 && accounts[0] === savedGameData.player.wallet) {
-                    // Wallet is still connected
                     updateHomeScreen();
-                } else {
-                    // Wallet is not connected anymore
-                    // Optionally, clear savedGameData.player.wallet here
                 }
             } catch (e) {
                 // Handle error if needed
@@ -4418,16 +4359,18 @@ function claimVaultTickets() {
     </script>
 
     <script>
-    function buyPLAI() {
-        // Replace the URL below with your actual buy link if you have one
-        window.open('https://matcha.xyz/tokens/base/0x977ea2dda60c1fdffd4b0377b036d3871f2d01a9', '_blank');
+    function buyPOL() {
+        // QuickSwap or Uniswap on Polygon to buy POL (native MATIC/POL)
+        window.open('https://quickswap.exchange/#/swap', '_blank');
     }
+    // Alias for any legacy references
+    function buyPLAI() { buyPOL(); }
     </script>
 
     <script>
     window.addEventListener('DOMContentLoaded', function() {
         if (savedGameData.player.wallet) {
-            updatePLAIWalletBalance();
+            updatePOLWalletBalance();
         }
     });
     </script>
@@ -4449,48 +4392,48 @@ function claimVaultTickets() {
     </script>
 
     <script>
-    async function sendPLAI(amount) {
-
+    async function sendPOL(amount) {
         if (!window.ethereum || !savedGameData.player.wallet) {
             showRewardNotification("❌ Connect your wallet first.");
             return false;
         }
 
         try {
-            // Request user to switch to Base if not already
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x2105' }] // 0x2105 = 8451 = Base Mainnet
-            });
+            // Ensure user is on Polygon
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (chainId !== POL_CHAIN_ID) {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: POL_CHAIN_ID }]
+                });
+            }
         } catch (switchError) {
-            showRewardNotification("❌ Please switch to Base network in MetaMask.");
+            showRewardNotification("❌ Please switch to Polygon network in MetaMask.");
             return false;
         }
 
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
-            const contract = new ethers.Contract(PLAI_TOKEN_ADDRESS, ERC20_ABI, signer);
 
-            // Convert amount to correct decimals (6)
-            const amountInWei = ethers.parseUnits(amount.toString(), PLAI_TOKEN_DECIMALS);
+            // POL is native — send as value in a plain transaction
+            const recipient = "0x4ec27a93525678a0CA3ccF00aff10aEeA4d4332D";
+            const amountInWei = ethers.parseUnits(amount.toString(), 18);
 
-            // Send transaction to a wallet address (replace with your desired address)
-            const recipient = "0x4ec27a93525678a0CA3ccF00aff10aEeA4d4332D"; // <-- Change to your wallet if needed
-
-            const tx = await contract.transfer(recipient, amountInWei);
+            const tx = await signer.sendTransaction({
+                to: recipient,
+                value: amountInWei
+            });
 
             showRewardNotification("⏳ Waiting for transaction confirmation...");
             await tx.wait();
 
             showRewardNotification("✅ Payment successful! Thank you.");
-            // Optionally, refresh balance
-            updatePLAIWalletBalance && updatePLAIWalletBalance();
-            // Wait 3 seconds before returning true
+            await updatePOLWalletBalance();
             await new Promise(resolve => setTimeout(resolve, 3000));
             return true;
         } catch (err) {
-            if (err.code === 4001) {
+            if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
                 showRewardNotification("❌ Transaction rejected by user.");
             } else {
                 showRewardNotification("❌ Payment failed: " + (err.message || err));
@@ -4498,6 +4441,8 @@ function claimVaultTickets() {
             return false;
         }
     }
+    // Alias so all existing sendPLAI() calls still work
+    const sendPLAI = sendPOL;
 
 
 
@@ -4540,14 +4485,14 @@ function renderEventsList() {
         document.getElementById('eventsMenu').style.display = 'none';
     };
 
-    goldRushBox.innerHTML = `
+        goldRushBox.innerHTML = `
         <h3>🌟 Gold Rush</h3>
-        <p>Deposit coins for a chance to win a PLAI mystery box!<br>
+        <p>Deposit coins for a chance to win a POL mystery box!<br>
         The more you deposit, the higher your chance to win.</p>
-        <div style="font-weight:bold; color:#FFD700; margin:10px 0;">
+        <div style="font-weight:bold; color:var(--pol-purple-light); margin:10px 0;">
             ${eventStatus}: ${days}d ${hours}h ${mins}m ${secs}s
         </div>
-        <div style="font-size:0.95em; color:#aaa;">
+        <div style="font-size:0.95em; color:var(--pol-text-dim);">
             Runs every first week of the month.
         </div>
     `;
@@ -4609,7 +4554,6 @@ function depositGoldRush() {
     }
     savedGameData.player.gold -= amount;
     savedGameData.player.goldRush.deposited += amount;
-    updateAllTasksProgress("spend_gold", amount);
     saveAllData();
     renderGoldRush();
     showRewardNotification(`Deposited ${amount} gold!`);
@@ -4672,9 +4616,9 @@ function checkGoldRushResult() {
     if (isGoldRushDrawn() && res && !savedGameData.player.goldRush.hasClaimed) {
         let msg;
         if (res.refunded) {
-            msg = `Gold Rush: Not enough PLAI in the pool. Your ${savedGameData.player.goldRush.deposited} gold was refunded.`;
+            msg = `Gold Rush: Not enough POL in the pool. Your ${savedGameData.player.goldRush.deposited} gold was refunded.`;
         } else if (res.won && res.prize) {
-            msg = `🎉 Gold Rush: You won ${res.prize} $PLAI!`;
+            msg = `🎉 Gold Rush: You won ${res.prize} $POL!`;
         } else {
             msg = `Gold Rush: You didn't win this time. Try again next month!`;
         }
@@ -4701,9 +4645,9 @@ function showGoldRushResultOnLogin() {
     ) {
         let msg;
         if (res.refunded) {
-            msg = `Gold Rush: Not enough PLAI in the pool. Your gold was refunded.`;
+            msg = `Gold Rush: Not enough POL in the pool. Your gold was refunded.`;
         } else if (res.won && res.prize) {
-            msg = `🎉 Gold Rush: You won ${res.prize} $PLAI!`;
+            msg = `🎉 Gold Rush: You won ${res.prize} $POL!`;
         } else {
             msg = `Gold Rush: You didn't win this time. Try again next month!`;
         }
@@ -4716,9 +4660,9 @@ function showGoldRushResultOnLogin() {
 }
 
 /**
- * Payout PLAI to the user from a specific pool. function that will be used to contact the smart contract to pay out PLAI.
- * Pays out PLAI to the user from a specific pool.
- * @param {number} amount - Amount of PLAI to pay out.
+ * Payout POL to the user from a specific pool.
+ * In future this will call the Polygon smart contract to pay out POL.
+ * @param {number} amount - Amount of POL to pay out.
  * @param {string} pool - Pool name, e.g. 'jumpPassPool'
  * @returns {boolean} - True if payout succeeded, false if not enough in pool.
  */
@@ -4726,11 +4670,10 @@ function showGoldRushResultOnLogin() {
     if (savedGameData.global.ecosystemData[pool] >= amount) {
         savedGameData.global.ecosystemData[pool] -= amount;
         savedGameData.player.plai += amount;
-        // In the future, call smart contract payout here!
+        // In the future, call Polygon smart contract payout here!
         saveAllData();
         return true;
     }
-    // Not enough in pool
     return false;
 }
 
@@ -4738,8 +4681,8 @@ function showGoldRushResultOnLogin() {
 
 if (window.ethereum) {
         window.ethereum.on('chainChanged', (chainId) => {
-            if (chainId !== '0x2105') {
-                showRewardNotification("⚠️ Please switch to Base network to play!");
+            if (chainId !== POL_CHAIN_ID) {
+                showRewardNotification("⚠️ Please switch to Polygon network to play!");
             }
         });
     }
